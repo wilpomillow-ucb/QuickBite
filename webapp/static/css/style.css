@@ -1,0 +1,988 @@
+@import url('https://fonts.googleapis.com/css2?family=Acme&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito&display=swap');
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background-size: cover;
+    background-position: center;
+    animation: fadeBackground 30s infinite;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    animation-timing-function:cubic-bezier(0.895, 0.03, 0.685, 0.22)
+}
+
+@keyframes fadeBackground {
+    /* Image 1 */
+    0%, 10% {
+        background-image: url('/static/images/image1.jpg');
+    }
+    /* Image 2 */
+    12.5%, 22.5% {
+        background-image: url('/static/images/image2.jpg');
+    }
+    /* Image 3 */
+    25%, 35% {
+        background-image: url('/static/images/image7.jpg');
+    }
+    /* Image 4 */
+    37.5%, 47.5% {
+        background-image: url('/static/images/image4.jpg');
+    }
+    /* Image 5 */
+    50%, 60% {
+        background-image: url('/static/images/image3.jpg');
+    }
+    /* Image 6 */
+    62.5%, 72.5% {
+        background-image: url('/static/images/image6.jpg');
+    }
+    /* Image 7 */
+    75%, 85% {
+        background-image: url('/static/images/image7.jpg');
+    }
+    /* Image 8 */
+    87.5%, 97.5% {
+        background-image: url('/static/images/image8.jpg');
+    }
+    /* Loop back to Image 1 */
+    100% {
+        background-image: url('/static/images/image1.jpg');
+    }
+}
+
+h1 {
+    font-family: 'Righteous';
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 69px;
+}
+
+.form-container {
+    background-color: #fff;
+    padding: 42px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    min-width: 30%; 
+    max-width: 55%; 
+    max-height: 80%;
+    overflow-y: auto;
+    margin: 0 auto; 
+    box-sizing: border-box; 
+}
+
+@media (max-width: 768px) {
+    .form-container {
+        width: 90vw; /* Slightly increase width on mobile for better usability */
+        height: 90vh; /* Slightly increase height on mobile */
+    }
+}
+
+h2 {
+    color: #333;
+    font: 24px 'Righteous';
+    color: #28a745;
+    margin-bottom: 20px;
+}
+
+p {
+    font-family: 'nunito', sans-serif;
+    color: #a2a2a2; 
+}
+
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #888888;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px 0;
+}
+
+button:hover {
+    background-color: #28a745;
+}
+
+.flash-success {
+    color: green;
+}
+
+.flash-error {
+    color: red;
+}
+
+a {
+    color: #888888;
+    text-decoration: none;
+}
+
+.meal-list {
+    background-color: #fff;
+    height: auto;
+    overflow-y: auto; 
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 32%; 
+    min-height: 400px;
+    box-sizing: border-box; 
+}
+
+.meal-list ul {
+    padding: 0;
+    list-style-type: none;
+}
+
+.meal-list li {
+    padding: 10px;
+    margin: 5px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.meal-list li:hover {
+    background-color: #f0f0f0; 
+    cursor: pointer; 
+}
+
+.nutrition-graph {
+    width: auto;
+    max-width: 600px;
+    min-width: 420px;
+    margin: auto;
+    padding: 10px;
+}
+
+@media (max-width: 600px) {
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .meal-list, #nutrition-graph {
+        max-width: 100%;
+        margin: 0;
+    }
+
+    .meal-list li {
+        font-size: 0.9em;
+    }
+
+    body {
+        padding: 5px;
+    }
+}
+    
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    font-family: 'nunito';
+}
+
+footer a {
+    color: #28a745; 
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+footer a:hover {
+    font-weight: bold;
+}
+
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px; 
+    text-decoration: none;
+    font-size: 16px;
+    font-family: 'Nunito', sans-serif;
+    transition: background-color 0.3s ease;
+}
+
+.back-button:hover {
+    background-color: #388E3C; 
+}
+
+.back-button:focus {
+    outline: none;
+}
+
+.back-button[aria-label]::before {
+    content: attr(aria-label);
+    position: absolute;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    font-family: 'nunito', sans-serif; 
+}
+
+.form-container input[type="text"],
+.form-container input[type="email"],
+.form-container textarea {
+    width: 100%; 
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; 
+}
+
+.form-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.form-container button:hover {
+    background-color: #388E3C; 
+}
+
+.no-background {
+    background: none !important;
+}
+
+.header-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 42px;
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.header-bar .left {
+    font-family: 'Righteous', sans-serif;
+    font-size: 24px;
+}
+
+.header-bar .center {
+    font-family: 'nunito', sans-serif;
+    font-size: 15px;
+    text-align: center;
+    flex: 1;
+}
+
+.header-bar .right {
+    font-family: 'nunito', sans-serif;
+    font-size: 15px;
+    text-align: right;
+    padding-right: 40px; 
+
+}
+
+.dashboard-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    max-width: 1200px;
+    margin-top: 10px; 
+    flex-wrap: wrap;
+    overflow-x: auto;
+}
+
+.dashboard-column {
+    flex: 1;
+    padding: 20px;
+    background-color: #fff;
+    margin: 0 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    min-height: 500px; 
+}
+
+.dashboard-column h2 {
+    font-family: 'nunito', sans-serif;
+    font-size: 22px;
+    margin-bottom: 20px;
+    text-align: center; 
+}
+
+.dashboard-container .dashboard-column:nth-child(2),
+.dashboard-container .dashboard-column:nth-child(3) {
+    min-width: 30px; 
+}
+
+.bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 69px;
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.add-diary-button {
+    background-color: #28a745;
+    border: none;
+    padding: 10px 20px;
+    font-size: 22px;
+    border-radius: 69px; 
+    width: auto; 
+    font-family: 'nunito', sans-serif;
+    cursor: pointer;
+}
+
+.add-diary-button:hover {
+    background-color: #388E3C;
+}
+
+.meal-name {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.meal-time {
+    color: #a2a2a2;
+    font-size: 15px;
+    margin-left: 10px;
+}
+
+.meal-info {
+    color: #888888; 
+    font-size: 12px;
+    display: block;
+    margin-top: 5px;
+}
+
+.greeting-text {
+    display: block;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    text-align: left;
+    color: #333; 
+    padding-left: 2%;
+}
+
+.greeting-main {
+    font-size: 24px; 
+    font-weight: bold; 
+    display: block; 
+}
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto; 
+    padding: 20px;
+    max-width: 1400px; 
+    margin: 0 auto; 
+}
+
+.greeting-sub {
+    font-size: 18px;
+    display: block;
+    line-height: 1;
+}
+
+.carousel-container {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow: hidden; 
+    padding-bottom: 50px;
+}
+
+.carousel-container {
+    position: relative;
+    margin: 0 auto;
+    overflow: hidden; 
+}
+
+.carousel {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    width: 300%; 
+}
+
+.carousel-item {
+    min-width: 100%; 
+    box-sizing: border-box;
+    padding: 20px;
+    background-color: #f9f9f9; 
+    border-radius: 10px; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+}
+
+.carousel-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.carousel-prev, .carousel-next {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 24px;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.carousel-prev:hover, .carousel-next:hover {
+    background-color: rgba(0, 0, 0, 0.8); 
+}
+
+.carousel-indicators {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin: 0 5px;
+    background-color: #ddd; 
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.indicator.active {
+    background-color: #28a745;
+}
+
+.carousel-item h2 {
+    font-family: 'Nunito', sans-serif; 
+    font-weight: 700; 
+    font-size: 24px;  
+    color: #28a745; 
+    margin-bottom: 20px; 
+}
+
+#title-refresh {
+    cursor: pointer; 
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: visibility 0s, opacity 0.3s ease-in-out; 
+    z-index: 1000;
+}
+
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.popup-history {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    padding: 20px;
+    max-width: 400px;
+    width: 90%;
+}
+
+.popup-content {
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    max-height: 80vh; 
+    padding-top: 40px; 
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    min-width: 150px;
+    width: auto;
+    scrollbar-width: thin; 
+    scrollbar-color: #888 #f0f0f0; 
+}
+
+.prediction-buttons {
+    margin-top: 20px;
+}
+
+.popup-overlay.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.prediction-button {
+    margin: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.prediction-button:hover {
+    background-color: #218838;
+}
+
+.popup-image {
+    max-height: 240px;
+}
+
+.close-popup {
+    position:fixed;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    z-index: 2000; 
+}
+
+
+.close-popup:hover {
+    background-color: rgba(0, 0, 0, 0.8); 
+}
+
+.add-diary-button:disabled {
+    background-color: #ccc; 
+    color: #666; 
+    cursor: not-allowed; 
+}
+
+.prediction-question {
+    margin-top: 15px;
+    font: 'Nunito', sans-serif;
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #333;
+}
+
+.prediction-buttons button, .custom-input-container input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    margin: 5px 0;
+}
+
+.custom-input-container {
+    margin-top: 15px;
+    text-align: left;
+}
+
+.custom-input-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #555;
+}
+
+.custom-input-container input {
+    box-sizing: border-box;  
+    border: 1px solid #ccc;
+}
+
+.shake {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+.submit-button {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button.grey {
+    background-color: #ccc; 
+    cursor: not-allowed;
+    color: #fff;
+    border: none;
+}
+
+.submit-button.grey:hover {
+    background-color: #ccc;
+}
+
+.submit-button.green {
+    background-color: #28a745; 
+    cursor: pointer;
+    color: white;
+}
+
+.submit-button.red {
+    background-color: #dc3545; 
+    cursor: not-allowed;
+}
+
+.popup-content::-webkit-scrollbar {
+    width: 3px; 
+}
+
+.popup-content::-webkit-scrollbar-thumb {
+    background-color: #888; 
+    border-radius: 10px; 
+}
+
+.popup-content::-webkit-scrollbar-thumb:hover {
+    background-color: #555; 
+}
+
+.nutrition-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 20px; 
+    margin-top: 20px; 
+    align-self: center;
+}
+
+.nutrition-item {
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+.quantity-large {
+    font-size: 20px;
+    color: #28a745; 
+    display: inline;
+    font-weight: bold;
+}
+
+.unit-small {
+    font-size: 12px;
+    color: #28a745;
+    display: inline;
+    margin-left: 3px;
+}
+
+.nutrition-item p {
+    margin-top: 5px;
+    font-size: 16px;
+    color: #333;
+    font: 'Nunito', sans-serif;
+}
+
+.add-to-diary-btn {
+    background-color: #28a745;
+    color: white;
+    font-size: 18px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 36px;
+    cursor: pointer;
+    margin-top: 20px; 
+    display: block;
+    width: 100%; 
+    text-align: center;
+}
+
+.add-to-diary-btn:hover {
+    background-color: #218838; 
+}
+
+#servings {
+    width: 100px;
+    padding: 5px;
+    font-size: 16px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.label-pills-container {
+    margin-top: 20px;
+}
+
+.pill {
+    display: inline-block;
+    background-color: #ccc;
+    color: #333;
+    padding: 5px 10px;
+    margin: 5px;
+    border-radius: 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.pill:hover {
+    background-color: #28a745;
+    color: white;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; 
+}
+
+.hidden {
+    display: none;
+}
+
+.overlay-text {
+    font-family: 'Righteous', cursive;
+    color: white;
+    font-size: 80px;
+}
+
+.scrollable-container {
+    max-height: 29px;
+    max-width: 420px;
+    overflow-y: auto;
+    padding: 2px;
+    margin-top: 2px;  
+    align-items: center;
+    align-self: center;
+    scrollbar-width: thin;
+    scrollbar-color: #888 #ddd;
+}
+
+.scrollable-container::-webkit-scrollbar {
+    display: none;
+}
+
+.meal-info-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.meal-info-table th, .meal-info-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.locked-content {
+    text-align:inherit;
+    font-size: 1em;
+    color: #666; 
+}
+
+.premium-link {
+    color: #28a745; 
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.premium-link:hover {
+    text-decoration: 1e7e34;
+}
+
+#nutritional-facts-table {
+    place-items: center;
+}
+
+.hidden-table {
+    display: none;
+    position: relative;
+    align-self: center;
+    overflow-y: auto;
+    max-height: 300px;
+    border-radius: 8px;
+    padding: 2px;
+    background-color: #fff;
+    width: 100%; 
+    box-sizing: border-box; 
+}
+
+.hidden-table tbody tr:last-child td {
+    border-bottom: 3px solid #bbb; 
+}
+
+.hidden-table th {
+    border-top: 3px solid #bbb; 
+    text-align: left; 
+    font-size: 14px;
+    font-weight: bold;
+    padding: 2px;
+}
+
+.auto-width-table {
+    width: 66%; 
+    margin: 0 auto; 
+    border-collapse: collapse; 
+}
+
+.hidden-table td {
+    text-align: left;
+    font-size: 12px;
+}
+
+.hidden-table tr:hover {
+    background-color: #f0f0f0; 
+}
+
+.hidden-table::-webkit-scrollbar {
+    width: 6px;
+}
+
+.hidden-table::-webkit-scrollbar-track {
+    background: #f0f0f0;
+}
+
+.hidden-table::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+.hidden-table::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.info-icon {
+    cursor: pointer;
+}
+
+.info-icon sup {
+    font-size: 0.6em;
+    vertical-align: top; 
+}
+
+.more-nutritional-info {
+    cursor: pointer;
+}
+
+.tooltip-icon {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: 160px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 12px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; 
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip-text::after {
+    content: '';
+    position: absolute;
+    top: 100%; 
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+.tooltip-icon:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+.triangle {
+    display: inline-block;
+    vertical-align: middle; 
+    margin-left: 8px;
+    font-size: 10px;
+    transition: transform 0.3s ease-in-out;
+    line-height: 1; 
+}
+
+.rotate-up {
+    transform: rotate(180deg);
+}

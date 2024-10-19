@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QuickBite - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Acme&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Acme&family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vega_graph.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.20.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .meal-list {
+            height: 300px;
+            overflow-y: scroll;
+        }
+    </style>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/bite.png') }}">
+
+</head>
+<body class="no-background">
+    <div class="header-bar">
+        <div class="left" id="title-refresh"> 
+            <span style="color: #28a745;">Quick</span><span style="color: #cccccc;">Bite</span>
+        </div>
+        <div class="center">Nutritional Dashboard</div>
+        <div class="right">
+            <a href="{{ url_for('logout') }}" style="text-decoration: none; color: inherit;">Log out</a>
+        </div>
+    </div>
+
+    <div class="grid-layout">
+        <p class="greeting-text">
+            <span class="greeting-main">Hey there!</span><span class="greeting-sub">What's tempting your taste buds today?</span>
+        </p>
+    
+        <div class="carousel-container">        
+            <div class="carousel">
+                <!-- Dashboard Column 1: Your Meals -->
+                <div class="carousel-item">
+                    <h2>Meal History</h2>
+                    <div class="meal-list">
+                        <ul>
+                            {% for meal in meals %}
+                                <li data-meal-id="{{ meal[0] }}">
+                                    <span class="meal-name">{{ meal[2] }}</span>
+                                    <span class="meal-time">{{ meal[-1] }}</span><br>
+                                    <span class="meal-info">
+                                        Calories: {{ meal[8] }}kcal | Protein: {{ meal[22] }}g | Carbs: {{ meal[6] }}g | Fat: {{ meal[28] }}g
+                                    </span>
+                                </li>
+                            {% else %}
+                                <li>No meals recorded yet.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+    
+                <!-- Dashboard Column 2: Trailing 7 Day Diet Tracker -->
+                <div class="carousel-item">
+                     <h2>Trailing 7 Day Diet Tracker</h2>
+                    <div id="nutrition-graph"></div>
+                </div>
+    
+                <!-- Dashboard Column 3: Premim Goal Tracker -->
+                <div class="carousel-item">
+                    <h2>Goal Tracker : Premium</h2>
+                    <div class="locked-content">
+                        <p>Discover more insights – Get <a href="/premium" style="color: #28a745;">Premium</a> access</p>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="carousel-controls">
+            <button class="carousel-prev" onclick="prevSlide()">&#10094;</button>
+            <div class="carousel-indicators">
+                <span class="indicator active" onclick="showSlide(0)"></span>
+                <span class="indicator" onclick="showSlide(1)"></span>
+                <span class="indicator" onclick="showSlide(2)"></span>
+            </div>
+            <button class="carousel-next" onclick="nextSlide()">&#10095;</button>
+        </div>
+
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" id="fileInput" name="file" style="display: none;" accept="image/*" onchange="uploadImage()">
+        </form>
+        <button class="add-diary-button" onclick="triggerFileUpload()">+ Diary Entry</button>
+    </div>
+
+    <div id="popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <span class="close" id="close-popup">&times;</span>
+            <div id="popup-result" class="popup-scrollable-content"></div>
+            <button id="add-to-diary" class="add-to-diary">Add to My Diary</button> 
+        </div>
+    </div>
+
+    <div id="popup-history" class="popup-history" style="display: none;">
+        <div class="popup-content">
+            <button class="close-popup" onclick="closePopup()">✖</button>
+            <div id="popup-result" class="popup-scrollable-content">
+                <p id="popup-message">You ate this!</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="popup-overlay" style="visibility: hidden; opacity: 0;">
+        <div class="popup-content">
+            <span class="close">&times;</span>
+            <p id="overlay-popup-message">You ate this!</p>
+            <button onclick="closePopup()" class="close-button">Close</button>
+        </div>
+    </div>
+
+</body>
+</html>

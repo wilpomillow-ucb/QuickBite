@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About Us</title>
+    <link href="https://fonts.googleapis.com/css2?family=Acme&family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/bite.png') }}">
+</head>
+<body>
+    <a href="{{ url_for('home') }}" class="back-button" aria-label="return to home">← Back</a>
+
+    <div class="form-container">
+        <h1>
+            <span style="color: #28a745;">Go</span>
+            <span style="color: #cccccc;">Premium</span>
+            </h1>
+
+            <h2>Just Kidding</h2>
+            <p>This is just a placeholder.</p>
+
+            <button onclick="history.back()" style="border-radius: 20px; width:auto; padding: 10px 20px;">Return</button>
+
+            </div>
+</body>
+</html>

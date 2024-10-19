@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About Us</title>
+    <link href="https://fonts.googleapis.com/css2?family=Acme&family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/bite.png') }}">
+</head>
+<body>
+    <a href="{{ url_for('home') }}" class="back-button" aria-label="return to home">← Back</a>
+
+    <div class="form-container">
+        <h1>
+            <span style="color: #28a745;">About</span>
+            <span style="color: #cccccc;">Us</span>
+            </h1>
+
+            <h2>The Problem</h2>
+            <p>Regularly measuring calorie intake presents significant challenges for the average consumer due to several factors. Accurately assessing portion sizes, interpreting nutritional labels, and accounting for the composition of meals, particularly in restaurant settings or with homemade recipes, can be complex and prone to error. Many food items lack readily accessible or clear calorie information, making estimation difficult and often leading to inaccuracies.  Furthermore, the process of consistently monitoring and recording food consumption requires substantial effort and attention, which can become mentally taxing and time-intensive. While digital tools and applications may assist with tracking, they still demand active user input and adherence, contributing to the perceived burden of routine calorie monitoring.</p>
+    
+            <h2>The Impact</h2>
+            <p>The failure to accurately identify the contents of food can have significant and far-reaching consequences, particularly for individuals with specific dietary needs, allergies, or health-related restrictions. For those with food allergies, a lack of ingredient transparency can result in severe and potentially life-threatening reactions, such as anaphylaxis, when allergens like nuts, shellfish, or gluten are unknowingly consumed.</p>
+    
+            <p>Individuals managing health conditions, such as diabetes or hypertension, may inadvertently consume harmful quantities of sugar, sodium, or fats, thereby worsening their health outcomes. Moreover, individuals adhering to dietary restrictions for religious reasons (e.g., halal or kosher) or ethical choices (e.g., veganism or vegetarianism) may unknowingly violate their dietary principles due to hidden or unclear ingredients, leading to personal, ethical, or religious distress.</p>
+    
+            <p>The absence of clear labeling or accurate ingredient information can further result in negative long-term health effects, such as poor nutrition or the development of chronic conditions, as consumers are unable to make informed choices about the nutritional quality of their food. Thus, transparency in food labeling is essential for ensuring public safety, respecting dietary preferences, and promoting overall health.</p>
+
+            <h2>Our Team</h2>
+            <p>Our team consists of three members. We are passionate about leveraging technology to address real-world challenges and improve the lives of individuals. By combining our diverse backgrounds in computer science, data analytics, and user experience design, we aim to create innovative solutions that empower users to make informed decisions about their health and nutrition.</p>
+
+            <button onclick="history.back()" style="border-radius: 20px; width:auto; padding: 10px 20px;">Return Home</button>
+
+            </div>
+</body>
+</html>
