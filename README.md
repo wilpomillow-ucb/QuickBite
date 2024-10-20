@@ -13,7 +13,7 @@ To run QuickBite locally, download the repo and run `app.py`.
 This will be hosted on your local which can be accessed via your web browser at HTTP://127.0.0.1:5000 
 
 Requirements for the local environment:
-|                |Version                        |Purpose                      |
+|library         |Version                        |Purpose                      |
 |----------------|-------------------------------|-----------------------------|
 |flask           |Latest                         |Python web framework library |
 |flask_login     |Latest                         |Python web authentication    |
