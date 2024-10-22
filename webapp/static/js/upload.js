@@ -601,6 +601,7 @@ function showMealPopup(imagePath, mealName, mealInfo) {
                 <h2>${mealName}</h2>
                 <img src="/${uploadedImagePath}" alt="Meal Image" class="popup-image">
                 <p>${mealInfo}</p>
+                <button class="share-button" onclick"shareMeal()">Share</button>
             </div>
         </div>
     `;
@@ -640,4 +641,9 @@ function getMealInfo(mealElement) {
 function logMealDetails(mealName, mealInfo) {
     console.log(`Meal: ${mealName}`);
     console.log(`Details: ${mealInfo}`);
+}
+
+function shareMeal(){
+    alert("Share Meal function is pending implementation.");
+    console.log("Share button clicked!");
 }
