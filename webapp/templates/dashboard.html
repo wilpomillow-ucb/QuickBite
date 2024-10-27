@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>QuickBite - Dashboard</title>
@@ -12,10 +13,15 @@
     <script src="https://cdn.jsdelivr.net/npm/vega@5.20.2"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.2.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"></script>
+    <!-- Adding vega -->
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
         }
+
         .meal-list {
             height: 300px;
             overflow-y: scroll;
@@ -24,9 +30,10 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/bite.png') }}">
 
 </head>
+
 <body class="no-background">
     <div class="header-bar">
-        <div class="left" id="title-refresh"> 
+        <div class="left" id="title-refresh">
             <span style="color: #28a745;">Quick</span><span style="color: #cccccc;">Bite</span>
         </div>
         <div class="center">Nutritional Dashboard</div>
@@ -37,10 +44,11 @@
 
     <div class="grid-layout">
         <p class="greeting-text">
-            <span class="greeting-main">Hey there!</span><span class="greeting-sub">What's tempting your taste buds today?</span>
+            <span class="greeting-main">Hey there!</span><span class="greeting-sub">What's tempting your taste buds
+                today?</span>
         </p>
-    
-        <div class="carousel-container">        
+
+        <div class="carousel-container">
             <div class="carousel">
                 <!-- Dashboard Column 1: Your Meals -->
                 <div class="carousel-item">
@@ -48,36 +56,47 @@
                     <div class="meal-list">
                         <ul>
                             {% for meal in meals %}
-                                <li data-meal-id="{{ meal[0] }}">
-                                    <span class="meal-name">{{ meal[2] }}</span>
-                                    <span class="meal-time">{{ meal[-1] }}</span><br>
-                                    <span class="meal-info">
-                                        Calories: {{ meal[8] }}kcal | Protein: {{ meal[22] }}g | Carbs: {{ meal[6] }}g | Fat: {{ meal[28] }}g
-                                    </span>
-                                </li>
+                            <li data-meal-id="{{ meal[0] }}">
+                                <span class="meal-name">{{ meal[2] }}</span>
+                                <span class="meal-time">{{ meal[-1] }}</span><br>
+                                <span class="meal-info">
+                                    Calories: {{ meal[8] }}kcal | Protein: {{ meal[22] }}g | Carbs: {{ meal[6] }}g |
+                                    Fat: {{ meal[28] }}g
+                                </span>
+                            </li>
                             {% else %}
-                                <li>No meals recorded yet.</li>
+                            <li>No meals recorded yet.</li>
                             {% endfor %}
                         </ul>
                     </div>
                 </div>
-    
+
                 <!-- Dashboard Column 2: Trailing 7 Day Diet Tracker -->
                 <div class="carousel-item">
-                     <h2>Trailing 7 Day Diet Tracker</h2>
-                    <div id="nutrition-graph"></div>
-                </div>
-    
-                <!-- Dashboard Column 3: Premim Goal Tracker -->
-                <div class="carousel-item">
-                    <h2>Goal Tracker : Premium</h2>
-                    <div class="locked-content">
-                        <p>Discover more insights – Get <a href="/premium" style="color: #28a745;">Premium</a> access</p>
+                    <h2>Trailing 7 Day Diet Tracker</h2>
+                    <!-- for dev; prod display none?-->
+                    <style id="dev"> #meals-data{display: none;}</style>
+                    <div id="meals-data" >
+                        {{ meals_last_7_days }}
+                    </div>
+                    <!-- for new dataset to play with -->
+                    <div id="lina-data-set">
+                    </div> 
+                    <div id="nutrition-graph-7-day">
+
                     </div>
                 </div>
+
+            <!-- Dashboard Column 3: Premim Goal Tracker -->
+            <div class="carousel-item">
+                <h2>Goal Tracker : Premium</h2>
+                <div class="locked-content">
+                    <p>Discover more insights - Get <a href="/premium" style="color: #28a745;">Premium</a> access</p>
+                </div>
             </div>
-    
-            <div class="carousel-controls">
+        </div>
+
+        <div class="carousel-controls">
             <button class="carousel-prev" onclick="prevSlide()">&#10094;</button>
             <div class="carousel-indicators">
                 <span class="indicator active" onclick="showSlide(0)"></span>
@@ -87,12 +106,13 @@
             <button class="carousel-next" onclick="nextSlide()">&#10095;</button>
         </div>
 
-        </div>
+    </div>
     </div>
 
     <div class="bottom-bar">
         <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
-            <input type="file" id="fileInput" name="file" style="display: none;" accept="image/*" onchange="uploadImage()">
+            <input type="file" id="fileInput" name="file" style="display: none;" accept="image/*"
+                onchange="uploadImage()">
         </form>
         <button class="add-diary-button" onclick="triggerFileUpload()">+ Diary Entry</button>
     </div>
@@ -101,7 +121,7 @@
         <div class="popup-content">
             <span class="close" id="close-popup">&times;</span>
             <div id="popup-result" class="popup-scrollable-content"></div>
-            <button id="add-to-diary" class="add-to-diary">Add to My Diary</button> 
+            <button id="add-to-diary" class="add-to-diary">Add to My Diary</button>
         </div>
     </div>
 
@@ -121,6 +141,6 @@
             <button onclick="closePopup()" class="close-button">Close</button>
         </div>
     </div>
-
 </body>
+
 </html>

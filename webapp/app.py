@@ -7,13 +7,26 @@ from datetime import datetime, timezone, timedelta
 import os
 from inference_sdk import InferenceHTTPClient
 import requests
+from dotenv import load_dotenv
+import json
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Retrieve the API key from the environment variable
+rb_api_key = os.environ.get('ROBOFLOW_API_KEY')
+edamam_api_key = os.environ.get('EDAMAM_API_KEY')
+
+# Check if the API key is set
+if not (rb_api_key and edamam_api_key):
+    raise ValueError("Please check that api keys were set in environment variable.")
 
 UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 CLIENT = InferenceHTTPClient(
     api_url="https://classify.roboflow.com",
-    api_key="INSERT_KEY_HERE"
+    api_key=rb_api_key
 )
 
 app = Flask(__name__, static_folder='static')
@@ -52,7 +65,7 @@ def classify_image(image_path):
     return result
 
 def recipe_search(food_query):
-    API_KEY = 'INSERT_KEY_HERE'
+    API_KEY = edamam_api_key
     APP_ID  = '2a940906'
     result = requests.get(
     f'https://api.edamam.com/api/recipes/v2?type=public&q={food_query}&app_id={APP_ID}&app_key={API_KEY}')
@@ -152,17 +165,52 @@ def dashboard():
     seven_days_ago = datetime.now() - timedelta(days=7)
     cursor.execute('''
         SELECT strftime('%Y-%m-%d', timestamp) AS day, 
-               SUM(ENERC_KCAL_kcal) AS calories
+               SUM(ENERC_KCAL_kcal) AS calories,
+               SUM(PROCNT_g) as protein, 
+               SUM(CHOCDF_g) as carbs, 
+               SUM(FAT_g) as fat
         FROM diary_meal_entries 
         WHERE user_id = ? AND timestamp >= ? 
         GROUP BY day 
         ORDER BY day DESC
     ''', (current_user.id, seven_days_ago))
     meals_last_7_days = cursor.fetchall()
+
+    # Lina todo : other interesting data sets? Steps are:
+    # lookup --> cursor.execute ( custom SQL query )
+    # in the below return statement, create a new prop that gets passed to the dashboard.html template
+    
+
+    # days = [entry[0] for entry in meals_last_7_days]
+    # calories = [entry[1] for entry in meals_last_7_days]
+    
+
+    # vega_spec = {
+    #     "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    #     "width": 500,
+    #     "height": 300,
+    #     "data": {
+    #         "values": [
+    #             {"day": day, "calories": cal} 
+    #             for day, cal in zip(days, calories)
+    #         ]
+    #     },
+    #     "mark": "line",
+    #     "encoding": {
+    #         "x": {"field": "day", "type": "temporal", "axis": {"format": "%Y-%m-%d"}},
+    #         "y": {"field": "calories", "type": "quantitative"}
+    #     }
+    # }
+
     db.close()
 
     # Pass the meals to the dashboard template
-    return render_template('dashboard.html', user=current_user, meals=meals, user_id=current_user.id, meals_last_7_days=meals_last_7_days)
+    return render_template('dashboard.html', 
+                            user=current_user, 
+                            meals=meals, 
+                            user_id=current_user.id, 
+                            meals_last_7_days=json.dumps(meals_last_7_days)
+                            )
 
 @app.route('/get_user_id')
 @login_required
