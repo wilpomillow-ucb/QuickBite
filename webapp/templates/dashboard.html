@@ -76,6 +76,16 @@
                     <h2>Trailing 7 Day Diet Tracker</h2>
                     <!-- for dev; prod display none?-->
                     <style id="dev"> #meals-data{display: none;}</style>
+                    <!-- TEST Adding a new div for the parameter selector -->
+                    <div id="parameter-selector">
+                        <label for="nutrition-select">Select Nutrition:</label>
+                        <select id="nutrition-select">
+                            <option value="calories">Calories</option>
+                            <option value="protein">Protein</option>
+                            <option value="carbs">Carbs</option>
+                            <option value="fat">Fat</option>
+                        </select>
+                    </div>
                     <div id="meals-data" >
                         {{ meals_last_7_days }}
                     </div>

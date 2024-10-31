@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
               "axis": {
                 "title": "Day",
                 "labelFont": "Nunito",
+                "labelAngle": -45,
                 "titleFont": "Righteous",
                 "titleFontSize": 14
               }
@@ -86,11 +87,50 @@ document.addEventListener('DOMContentLoaded', function () {
             "field": "nutritionValue",
             "type": "quantitative"
         }
-    }
+    },
+    // if we wanted the labels on the chart
+    // "layer": [
+    //     {
+    //         "mark": "bar"
+    //     },
+    //     {
+    //         "mark": {
+    //             "type": "text",
+    //             "fontSize": 12,
+    //             "dy": -5  // Adjust vertical position of the text
+    //         },
+    //         "encoding": {
+    //             "x": {
+    //                 "field": "day"
+    //             },
+    //             "y": {
+    //                 "field": "nutritionValue"
+    //             },
+    //             "text": {
+    //                 "field": "nutritionValue"
+    //             },
+    //             "color": {
+    //                 "value": "black"  // Set text color
+    //             }
+    //         }
+    //     }
+    // ]
   };
 
-  // Render the Vega graph in the #nutrition-graph-7-day div
-  vegaEmbed('#nutrition-graph-7-day', vegaSpec, {renderer: "svg", actions: false})
-      .then(() => console.log("Vega graph rendered successfully."))
-      .catch(console.error);
+  const renderGraph = (nutrition) => {
+    vegaSpec.params[0].value = nutrition;
+    // Render the Vega graph in the #nutrition-graph-7-day div
+    vegaEmbed('#nutrition-graph-7-day', vegaSpec, {renderer: "svg", actions: false})
+        .then(() => console.log("Vega graph rendered successfully."))
+        .catch(console.error);
+  };
+  // Initial render
+  renderGraph('calories');
+
+  // Update graph on parameter change
+  document.getElementById('nutrition-select').addEventListener('change', function () {
+    renderGraph(this.value);
+  });  
+
 });
+
