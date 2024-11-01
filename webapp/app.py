@@ -179,6 +179,9 @@ def home():
                     return redirect(url_for("home"))
                 except sqlite3.IntegrityError:
                     flash("Email already exists.", "error")
+                except Exception as e:
+                    flash("An error occurred. Please try again.", "error")
+                    print(e)
     return render_template("home.html")
 
 
