@@ -2,4 +2,6 @@
 __pycache__/
 .env
 .ipynb_checkpoints/
+
 webapp/static/uploads/
+!webapp/static/uploads/.gitkeep

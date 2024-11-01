@@ -1,44 +1,44 @@
 let selectedMealName = null;
-let uploadedImagePath = ''; 
+let uploadedImagePath = '';
 let selectedPrediction = null;
 
 // Mapping NTR codes to nutrient names and units
 const nutrientMapping = {
-    "SUGAR.added": { name: "Added sugar", unit: "g" },
-    "CA": { name: "Calcium, Ca", unit: "mg" },
-    "CHOCDF.net": { name: "   Carbohydrate (net)", unit: "g" },
-    "CHOCDF": { name: "Carbohydrate, by difference", unit: "g" },
-    "CHOLE": { name: "Cholesterol", unit: "mg" },
-    "ENERC_KCAL": { name: "Energy", unit: "kcal" },
-    "FAMS": { name: "   Fatty acids, total monounsaturated", unit: "g" },
-    "FAPU": { name: "   Fatty acids, total polyunsaturated", unit: "g" },
-    "FASAT": { name: "   Fatty acids, total saturated", unit: "g" },
-    "FATRN": { name: "   Fatty acids, total trans", unit: "g" },
-    "FIBTG": { name: "Fiber, total dietary", unit: "g" },
-    "FOLDFE": { name: "Folate, DFE", unit: "µg" },
-    "FOLFD": { name: "   Folate, food", unit: "µg" },
-    "FOLAC": { name: "   Folic acid", unit: "µg" },
-    "FE": { name: "Iron, Fe", unit: "mg" },
-    "MG": { name: "Magnesium", unit: "mg" },
-    "NIA": { name: "Niacin", unit: "mg" },
-    "P": { name: "Phosphorus, P", unit: "mg" },
-    "K": { name: "Potassium, K", unit: "mg" },
-    "PROCNT": { name: "Protein", unit: "g" },
-    "RIBF": { name: "Riboflavin", unit: "mg" },
-    "NA": { name: "Sodium, Na", unit: "mg" },
-    "Sugar.alcohol": { name: "Sugar alcohols", unit: "g" },
-    "SUGAR": { name: "Sugars, total", unit: "g" },
-    "THIA": { name: "Thiamin", unit: "mg" },
-    "FAT": { name: "Total lipid (fat)", unit: "g" },
-    "VITA_RAE": { name: "Vitamin A, RAE", unit: "µg" },
-    "VITB12": { name: "Vitamin B-12", unit: "µg" },
-    "VITB6A": { name: "Vitamin B-6", unit: "mg" },
-    "VITC": { name: "Vitamin C, total ascorbic acid", unit: "mg" },
-    "VITD": { name: "Vitamin D (D2 + D3)", unit: "µg" },
-    "TOCPHA": { name: "Vitamin E (alpha-tocopherol)", unit: "mg" },
-    "VITK1": { name: "Vitamin K (phylloquinone)", unit: "µg" },
-    "WATER": { name: "Water", unit: "g" },
-    "ZN": { name: "Zinc, Zn", unit: "mg" }
+    'SUGAR.added': { name: 'Added sugar', unit: 'g' },
+    CA: { name: 'Calcium, Ca', unit: 'mg' },
+    'CHOCDF.net': { name: '   Carbohydrate (net)', unit: 'g' },
+    CHOCDF: { name: 'Carbohydrate, by difference', unit: 'g' },
+    CHOLE: { name: 'Cholesterol', unit: 'mg' },
+    ENERC_KCAL: { name: 'Energy', unit: 'kcal' },
+    FAMS: { name: '   Fatty acids, total monounsaturated', unit: 'g' },
+    FAPU: { name: '   Fatty acids, total polyunsaturated', unit: 'g' },
+    FASAT: { name: '   Fatty acids, total saturated', unit: 'g' },
+    FATRN: { name: '   Fatty acids, total trans', unit: 'g' },
+    FIBTG: { name: 'Fiber, total dietary', unit: 'g' },
+    FOLDFE: { name: 'Folate, DFE', unit: 'µg' },
+    FOLFD: { name: '   Folate, food', unit: 'µg' },
+    FOLAC: { name: '   Folic acid', unit: 'µg' },
+    FE: { name: 'Iron, Fe', unit: 'mg' },
+    MG: { name: 'Magnesium', unit: 'mg' },
+    NIA: { name: 'Niacin', unit: 'mg' },
+    P: { name: 'Phosphorus, P', unit: 'mg' },
+    K: { name: 'Potassium, K', unit: 'mg' },
+    PROCNT: { name: 'Protein', unit: 'g' },
+    RIBF: { name: 'Riboflavin', unit: 'mg' },
+    NA: { name: 'Sodium, Na', unit: 'mg' },
+    'Sugar.alcohol': { name: 'Sugar alcohols', unit: 'g' },
+    SUGAR: { name: 'Sugars, total', unit: 'g' },
+    THIA: { name: 'Thiamin', unit: 'mg' },
+    FAT: { name: 'Total lipid (fat)', unit: 'g' },
+    VITA_RAE: { name: 'Vitamin A, RAE', unit: 'µg' },
+    VITB12: { name: 'Vitamin B-12', unit: 'µg' },
+    VITB6A: { name: 'Vitamin B-6', unit: 'mg' },
+    VITC: { name: 'Vitamin C, total ascorbic acid', unit: 'mg' },
+    VITD: { name: 'Vitamin D (D2 + D3)', unit: 'µg' },
+    TOCPHA: { name: 'Vitamin E (alpha-tocopherol)', unit: 'mg' },
+    VITK1: { name: 'Vitamin K (phylloquinone)', unit: 'µg' },
+    WATER: { name: 'Water', unit: 'g' },
+    ZN: { name: 'Zinc, Zn', unit: 'mg' },
 };
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mealList.addEventListener('click', handleMealClick);
     }
 
-    closePopupBtns.forEach(btn => btn.addEventListener('click', closePopup));
+    closePopupBtns.forEach((btn) => btn.addEventListener('click', closePopup));
     popupOverlay.addEventListener('click', handleOverlayClick);
 });
 
@@ -82,7 +82,6 @@ const popupMessage = document.getElementById('popup-message');
 const popupOverlay = document.querySelector('.popup-overlay');
 const closePopupBtn = document.querySelectorAll('.close');
 
-
 document.addEventListener('click', function (event) {
     const target = event.target;
 
@@ -95,27 +94,29 @@ document.addEventListener('click', function (event) {
     }
 });
 
-closePopupBtns.forEach(btn => btn.addEventListener('click', closePopup));
+closePopupBtns.forEach((btn) => btn.addEventListener('click', closePopup));
 popupOverlay.addEventListener('click', handleOverlayClick);
 
 function toTitleCase(str) {
-    return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+    return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function generateNutritionalRows(nutrients) {
-    return Object.entries(nutrients).map(([key, value]) => {
-        const nutrient = nutrientMapping[key] || { name: key, unit: "" };
-        const amount = value.quantity ? value.quantity.toFixed(2) : 0;
-        const unit = value.unit || '';
-        const nutrientName = nutrient.name.replace(/^ +/g, match => '&nbsp;'.repeat(match.length));
+    return Object.entries(nutrients)
+        .map(([key, value]) => {
+            const nutrient = nutrientMapping[key] || { name: key, unit: '' };
+            const amount = value.quantity ? value.quantity.toFixed(2) : 0;
+            const unit = value.unit || '';
+            const nutrientName = nutrient.name.replace(/^ +/g, (match) => '&nbsp;'.repeat(match.length));
 
-        return `
+            return `
             <tr>
                 <td>${nutrientName}</td>
                 <td>${amount} ${unit}</td>
             </tr>
         `;
-    }).join('');
+        })
+        .join('');
 }
 
 let isTableVisible = false;
@@ -125,10 +126,10 @@ function toggleNutritionalTable() {
     const triangleIcon = document.getElementById('toggle-icon');
 
     if (table.style.display === 'none' || table.style.display === '') {
-        table.style.display = 'block'; 
-        triangleIcon.classList.add('rotate-up'); 
+        table.style.display = 'block';
+        triangleIcon.classList.add('rotate-up');
     } else {
-        table.style.display = 'none'; 
+        table.style.display = 'none';
         triangleIcon.classList.remove('rotate-up');
     }
 }
@@ -139,33 +140,33 @@ function triggerFileUpload() {
 
 function uploadImage() {
     const button = document.querySelector('.add-diary-button');
-    button.innerHTML = "Analysing...";
-    button.disabled = true; 
-    button.style.cursor = "default";
+    button.innerHTML = 'Analysing...';
+    button.disabled = true;
+    button.style.cursor = 'default';
 
     const formData = new FormData(document.getElementById('uploadForm'));
 
     fetch('/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
     })
-    .then(response => response.json())
-    .then(data => {
-        uploadedImagePath = data.image_path;
-        console.log('Image uploaded:', uploadedImagePath);
-        showPopup(uploadedImagePath, data.predictions);
+        .then((response) => response.json())
+        .then((data) => {
+            uploadedImagePath = data.image_path;
+            console.log('Image uploaded:', uploadedImagePath);
+            showPopup(uploadedImagePath, data.predictions);
 
-        button.innerHTML = "Analysis Complete";
-        button.disabled = false; 
-        button.style.cursor = "pointer";
-        document.getElementById('fileInput').value = ''; 
-    })
-    .catch(error => {
-        console.error('Error uploading image:', error);
-        button.innerHTML = "+ Diary Entry";
-        button.disabled = false; 
-        button.style.cursor = "pointer";
-    });
+            button.innerHTML = 'Analysis Complete';
+            button.disabled = false;
+            button.style.cursor = 'pointer';
+            document.getElementById('fileInput').value = '';
+        })
+        .catch((error) => {
+            console.error('Error uploading image:', error);
+            button.innerHTML = '+ Diary Entry';
+            button.disabled = false;
+            button.style.cursor = 'pointer';
+        });
 }
 
 function showPopup(imagePath, predictions) {
@@ -177,9 +178,13 @@ function showPopup(imagePath, predictions) {
                 <img src="/${uploadedImagePath}" alt="Uploaded Image" class="popup-image">
                 <div class="prediction-question">Which best describes your meal?</div>
                 <div class="prediction-buttons">
-                    ${predictions.map((prediction, index) => `
+                    ${predictions
+                        .map(
+                            (prediction, index) => `
                         <button class="prediction-button" onclick="submitPrediction('${prediction}')">${prediction}</button>
-                    `).join('')}
+                    `
+                        )
+                        .join('')}
                 </div>
                 <div class="custom-input-container">
                     <label for="customMeal">Or type your own description:</label>
@@ -200,8 +205,8 @@ function closePopup() {
         popupOverlay.remove();
     }
     const button = document.querySelector('.add-diary-button');
-    button.disabled = false;  
-    button.innerHTML = "+ Diary Entry";
+    button.disabled = false;
+    button.innerHTML = '+ Diary Entry';
 }
 
 function selectPrediction(prediction) {
@@ -213,7 +218,7 @@ function selectPrediction(prediction) {
 
 function submitPrediction(prediction) {
     document.querySelector('.prediction-question').style.display = 'none';
-    selectedMealName = prediction;  
+    selectedMealName = prediction;
     console.log('Selected meal name (submit prediction):', selectedMealName);
     displayLoadingState();
     fetchRecipes(selectedMealName, uploadedImagePath);
@@ -224,21 +229,21 @@ async function submitQuery() {
     const customMeal = document.getElementById('customMeal').value.trim();
 
     if (customMeal) {
-        selectedMealName = customMeal;  
+        selectedMealName = customMeal;
     }
 
     if (!customMeal && !selectedMealName) {
         shakeButton(document.getElementById('submitButton'));
         return;
     }
-    console.log('Selected meal name:', selectedMealName); 
+    console.log('Selected meal name:', selectedMealName);
     displayLoadingState();
     fetchRecipes(selectedMealName, uploadedImagePath);
 }
 
-document.querySelectorAll('.prediction-button').forEach(button => {
+document.querySelectorAll('.prediction-button').forEach((button) => {
     button.addEventListener('click', function () {
-        submitPrediction(this.innerText);  
+        submitPrediction(this.innerText);
     });
 });
 
@@ -275,7 +280,7 @@ function shakeButton(button) {
     button.classList.add('shake', 'red');
     setTimeout(() => {
         button.classList.remove('shake', 'red');
-    }, 500); 
+    }, 500);
 }
 
 function fetchRecipes(foodQuery, imagePath) {
@@ -283,33 +288,35 @@ function fetchRecipes(foodQuery, imagePath) {
     const APP_ID = '2a940906';
 
     fetch(`https://api.edamam.com/api/recipes/v2?type=public&q=${foodQuery}&app_id=${APP_ID}&app_key=${API_KEY}`)
-    .then(response => response.json())
-    .then(data => {
-        const topRecipes = data.hits.slice(0, 5);
-        const bestMatch = findBestMatch(foodQuery, topRecipes);
-        displayNutritionalInfo(bestMatch, imagePath);
-    })
-    .catch(error => {
-        console.error('Error fetching recipes:', error);
-        document.getElementById('resultContainer').innerHTML = `<p>Error loading results. Please try again later.</p>`;
-    });
+        .then((response) => response.json())
+        .then((data) => {
+            const topRecipes = data.hits.slice(0, 5);
+            const bestMatch = findBestMatch(foodQuery, topRecipes);
+            displayNutritionalInfo(bestMatch, imagePath);
+        })
+        .catch((error) => {
+            console.error('Error fetching recipes:', error);
+            document.getElementById(
+                'resultContainer'
+            ).innerHTML = `<p>Error loading results. Please try again later.</p>`;
+        });
 }
 
 function findBestMatch(foodQuery, recipes) {
-let highestSimilarity = 0;
-let bestMatch = null;
+    let highestSimilarity = 0;
+    let bestMatch = null;
 
-recipes.forEach(hit => {
-    const recipe = hit.recipe;
-    const similarity = calculateStringSimilarity(foodQuery, recipe.label);
+    recipes.forEach((hit) => {
+        const recipe = hit.recipe;
+        const similarity = calculateStringSimilarity(foodQuery, recipe.label);
 
-    if (similarity > highestSimilarity) {
-        highestSimilarity = similarity;
-        bestMatch = recipe;
-    }
-});
+        if (similarity > highestSimilarity) {
+            highestSimilarity = similarity;
+            bestMatch = recipe;
+        }
+    });
 
-return bestMatch;
+    return bestMatch;
 }
 
 function calculateStringSimilarity(str1, str2) {
@@ -318,7 +325,7 @@ function calculateStringSimilarity(str1, str2) {
 
     const distance = levenshteinDistance(str1, str2);
     const maxLength = Math.max(str1.length, str2.length);
-    return 1 - (distance / maxLength);
+    return 1 - distance / maxLength;
 }
 
 function levenshteinDistance(a, b) {
@@ -339,8 +346,8 @@ function levenshteinDistance(a, b) {
             } else {
                 matrix[i][j] = Math.min(
                     matrix[i - 1][j - 1] + 1, // Substitution
-                    matrix[i][j - 1] + 1,     // Insertion
-                    matrix[i - 1][j] + 1      // Deletion
+                    matrix[i][j - 1] + 1, // Insertion
+                    matrix[i - 1][j] + 1 // Deletion
                 );
             }
         }
@@ -354,12 +361,14 @@ function displayNutritionalInfo(recipe, uploadedImagePath) {
     const resultContainer = document.getElementById('resultContainer');
     resultContainer.style.display = 'block';
 
-    const totalWeight = recipe.totalWeight ? recipe.totalWeight.toFixed(2) : 'N/A'; 
+    const totalWeight = recipe.totalWeight ? recipe.totalWeight.toFixed(2) : 'N/A';
     const originalCalories = recipe.calories;
     const originalCarbs = recipe.totalNutrients.CHOCDF.quantity;
     const originalFat = recipe.totalNutrients.FAT.quantity;
     const originalProtein = recipe.totalNutrients.PROCNT.quantity;
-    const originalSUGAR_added_g = recipe.totalNutrients.SUGAR['added'] ? recipe.totalNutrients.SUGAR['added'].quantity : 0;
+    const originalSUGAR_added_g = recipe.totalNutrients.SUGAR['added']
+        ? recipe.totalNutrients.SUGAR['added'].quantity
+        : 0;
     const originalCA_mg = recipe.totalNutrients.CA.quantity;
     const originalCHOCDF_net_g = recipe.totalNutrients.CHOCDF['net'] ? recipe.totalNutrients.CHOCDF['net'].quantity : 0;
     const originalCHOCDF_g = recipe.totalNutrients.CHOCDF.quantity;
@@ -380,7 +389,7 @@ function displayNutritionalInfo(recipe, uploadedImagePath) {
     const originalRIBF_mg = recipe.totalNutrients.RIBF.quantity;
     const originalNA_mg = recipe.totalNutrients.NA.quantity;
     const originalSUGAR_ALCOHOL_g = 0; // recipe.totalNutrients.Sugar['alcohol'] ? recipe.totalNutrients.SUGAR['alcohol'].quantity : 0;
-    const originalSUGAR_g = recipe.totalNutrients.  SUGAR.quantity;
+    const originalSUGAR_g = recipe.totalNutrients.SUGAR.quantity;
     const originalTHIA_mg = recipe.totalNutrients.THIA.quantity;
     const originalVITA_RAE_microg = recipe.totalNutrients.VITA_RAE.quantity;
     const originalVITB12_microg = recipe.totalNutrients.VITB12.quantity;
@@ -395,31 +404,42 @@ function displayNutritionalInfo(recipe, uploadedImagePath) {
 
     // Add consts for diet labels, health labels, and cautions
     const combinedLabels = [...new Set([...recipe.dietLabels, ...recipe.healthLabels, ...recipe.cautions])];
-    const labelPills = combinedLabels.map(label => {
-        return `<span class="pill">${label}</span>`;
-    }).join('');
+    const labelPills = combinedLabels
+        .map((label) => {
+            return `<span class="pill">${label}</span>`;
+        })
+        .join('');
 
-    const ingredients = recipe.ingredients.map(ingredient => 
-        `<span class="pill">${toTitleCase(ingredient.food)}</span>`
-    ).join('');    console.log(ingredients);
+    const ingredients = recipe.ingredients
+        .map((ingredient) => `<span class="pill">${toTitleCase(ingredient.food)}</span>`)
+        .join('');
+    console.log(ingredients);
 
     // Display the recipe's nutritional information and add servings input and "Add to Diary" button
     resultContainer.innerHTML = `
         <div class="nutrition-grid">
             <div class="nutrition-item">
-                <span class="quantity-large" id="calories-value">${originalCalories.toFixed(2)}</span><span class="unit-small">kcal</span>
+                <span class="quantity-large" id="calories-value">${originalCalories.toFixed(
+                    2
+                )}</span><span class="unit-small">kcal</span>
                 <p>Calories</p>
             </div>
             <div class="nutrition-item">
-                <span class="quantity-large" id="carbs-value">${originalCarbs.toFixed(2)}</span><span class="unit-small">g</span>
+                <span class="quantity-large" id="carbs-value">${originalCarbs.toFixed(
+                    2
+                )}</span><span class="unit-small">g</span>
                 <p>Carbs</p>
             </div>
             <div class="nutrition-item">
-                <span class="quantity-large" id="fat-value">${originalFat.toFixed(2)}</span><span class="unit-small">g</span>
+                <span class="quantity-large" id="fat-value">${originalFat.toFixed(
+                    2
+                )}</span><span class="unit-small">g</span>
                 <p>Fat</p>
             </div>
             <div class="nutrition-item">
-                <span class="quantity-large" id="protein-value">${originalProtein.toFixed(2)}</span><span class="unit-small">g</span>
+                <span class="quantity-large" id="protein-value">${originalProtein.toFixed(
+                    2
+                )}</span><span class="unit-small">g</span>
                 <p>Protein</p>
             </div>
         </div>
@@ -464,7 +484,7 @@ function displayNutritionalInfo(recipe, uploadedImagePath) {
         <button class="add-to-diary-btn">Add to Diary</button>
     `;
 
-    document.getElementById('servings').addEventListener('input', function() {
+    document.getElementById('servings').addEventListener('input', function () {
         let servings = parseFloat(this.value) || 1;
 
         if (servings < 0) {
@@ -486,82 +506,82 @@ function displayNutritionalInfo(recipe, uploadedImagePath) {
         const mealName = selectedMealName || document.getElementById('customMeal').value.trim();
 
         console.log('Submitting:', mealName);
-        
-    // Nutritional values (multiplied by the number of servings)
-    const nutritionalData = {
-        SUGAR_added_g: (originalSUGAR_added_g * servings).toFixed(2),
-        CA_mg: (originalCA_mg * servings).toFixed(2),
-        CHOCDF_net_g: (originalCHOCDF_net_g * servings).toFixed(2),
-        CHOCDF_g: (originalCHOCDF_g * servings).toFixed(2),
-        CHOLE_mg: (originalCHOLE_mg * servings).toFixed(2),
-        ENERC_KCAL_kcal: (originalCalories * servings).toFixed(2),
-        FAMS_g: (originalFAMS_g * servings).toFixed(2),
-        FAPU_g: (originalFAPU_g * servings).toFixed(2),
-        FASAT_g: (originalFASAT_g * servings).toFixed(2),
-        FATRN_g: (originalFATRN_g * servings).toFixed(2),
-        FIBTG_g: (originalFIBTG_g * servings).toFixed(2),
-        FOLDFE_microg: (originalFOLDFE_microg * servings).toFixed(2),
-        FOLFD_microg: (originalFOLFD_microg * servings).toFixed(2),
-        FOLAC_microg: (originalFOLAC_microg * servings).toFixed(2),
-        FE_mg: (originalFE_mg * servings).toFixed(2),
-        MG_mg: (originalMG_mg * servings).toFixed(2),
-        NIA_mg: (originalNIA_mg * servings).toFixed(2),
-        P_mg: (originalP_mg * servings).toFixed(2),
-        K_mg: (originalK_mg * servings).toFixed(2),
-        PROCNT_g: (originalProtein * servings).toFixed(2),
-        RIBF_mg: (originalRIBF_mg * servings).toFixed(2),
-        NA_mg: (originalNA_mg * servings).toFixed(2),
-        SUGAR_ALCOHOL_g: (originalSUGAR_ALCOHOL_g * servings).toFixed(2),
-        SUGAR_g: (originalSUGAR_g * servings).toFixed(2),
-        THIA_mg: (originalTHIA_mg * servings).toFixed(2),
-        FAT_g: (originalFat * servings).toFixed(2),
-        VITA_RAE_microg: (originalVITA_RAE_microg * servings).toFixed(2),
-        VITB12_microg: (originalVITB12_microg * servings).toFixed(2),
-        VITB6A_mg: (originalVITB6A_mg * servings).toFixed(2),
-        VITC_mg: (originalVITC_mg * servings).toFixed(2),
-        VITD_microg: (originalVITD_microg * servings).toFixed(2),
-        TOCPHA_mg: (originalTOCPHA_mg * servings).toFixed(2),
-        VITK_microg: (originalVITK_microg * servings).toFixed(2),
-        WATER_g: (originalWATER_g * servings).toFixed(2),
-        ZN_mg: (originalZN_mg * servings).toFixed(2)
-    };
 
-    button.disabled = true;
-    button.style.backgroundColor = 'grey';
-    button.style.cursor = 'not-allowed';
+        // Nutritional values (multiplied by the number of servings)
+        const nutritionalData = {
+            SUGAR_added_g: (originalSUGAR_added_g * servings).toFixed(2),
+            CA_mg: (originalCA_mg * servings).toFixed(2),
+            CHOCDF_net_g: (originalCHOCDF_net_g * servings).toFixed(2),
+            CHOCDF_g: (originalCHOCDF_g * servings).toFixed(2),
+            CHOLE_mg: (originalCHOLE_mg * servings).toFixed(2),
+            ENERC_KCAL_kcal: (originalCalories * servings).toFixed(2),
+            FAMS_g: (originalFAMS_g * servings).toFixed(2),
+            FAPU_g: (originalFAPU_g * servings).toFixed(2),
+            FASAT_g: (originalFASAT_g * servings).toFixed(2),
+            FATRN_g: (originalFATRN_g * servings).toFixed(2),
+            FIBTG_g: (originalFIBTG_g * servings).toFixed(2),
+            FOLDFE_microg: (originalFOLDFE_microg * servings).toFixed(2),
+            FOLFD_microg: (originalFOLFD_microg * servings).toFixed(2),
+            FOLAC_microg: (originalFOLAC_microg * servings).toFixed(2),
+            FE_mg: (originalFE_mg * servings).toFixed(2),
+            MG_mg: (originalMG_mg * servings).toFixed(2),
+            NIA_mg: (originalNIA_mg * servings).toFixed(2),
+            P_mg: (originalP_mg * servings).toFixed(2),
+            K_mg: (originalK_mg * servings).toFixed(2),
+            PROCNT_g: (originalProtein * servings).toFixed(2),
+            RIBF_mg: (originalRIBF_mg * servings).toFixed(2),
+            NA_mg: (originalNA_mg * servings).toFixed(2),
+            SUGAR_ALCOHOL_g: (originalSUGAR_ALCOHOL_g * servings).toFixed(2),
+            SUGAR_g: (originalSUGAR_g * servings).toFixed(2),
+            THIA_mg: (originalTHIA_mg * servings).toFixed(2),
+            FAT_g: (originalFat * servings).toFixed(2),
+            VITA_RAE_microg: (originalVITA_RAE_microg * servings).toFixed(2),
+            VITB12_microg: (originalVITB12_microg * servings).toFixed(2),
+            VITB6A_mg: (originalVITB6A_mg * servings).toFixed(2),
+            VITC_mg: (originalVITC_mg * servings).toFixed(2),
+            VITD_microg: (originalVITD_microg * servings).toFixed(2),
+            TOCPHA_mg: (originalTOCPHA_mg * servings).toFixed(2),
+            VITK_microg: (originalVITK_microg * servings).toFixed(2),
+            WATER_g: (originalWATER_g * servings).toFixed(2),
+            ZN_mg: (originalZN_mg * servings).toFixed(2),
+        };
 
-    console.log('Preparing to send the following data to the backend:', {
-        meal_name: selectedMealName,
-        serving_count: servings,
-        path_to_image: uploadedImagePath,
-        nutritional_data: nutritionalData
-    });
-    
-    try {
-        const response = await fetch('/add_to_diary', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                meal_name: mealName,
-                serving_count: servings,
-                path_to_image: uploadedImagePath,
-                nutritional_data: nutritionalData
-            })
+        button.disabled = true;
+        button.style.backgroundColor = 'grey';
+        button.style.cursor = 'not-allowed';
+
+        console.log('Preparing to send the following data to the backend:', {
+            meal_name: selectedMealName,
+            serving_count: servings,
+            path_to_image: uploadedImagePath,
+            nutritional_data: nutritionalData,
         });
 
-        const data = await response.json();
-        if (data.status === 'success') {
-            closePopup();
-            window.location.reload(); 
-        } else {
-            console.error('Error from backend:', data.message);
+        try {
+            const response = await fetch('/add_to_diary', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    meal_name: mealName,
+                    serving_count: servings,
+                    path_to_image: uploadedImagePath,
+                    nutritional_data: nutritionalData,
+                }),
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                closePopup();
+                window.location.reload();
+            } else {
+                console.error('Error from backend:', data.message);
+                alert('There was an error adding the meal. Please try again.');
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
             alert('There was an error adding the meal. Please try again.');
         }
-    } catch (error) {
-        console.error('Fetch error:', error);
-        alert('There was an error adding the meal. Please try again.');
-    }
-});
+    });
 }
 
 function closePopup() {
@@ -591,7 +611,7 @@ async function fetchMealImagePath(mealId) {
 }
 
 function showMealPopup(imagePath, mealName, mealInfo) {
-    uploadedImagePath = imagePath;  
+    uploadedImagePath = imagePath;
     const existingPopup = document.getElementById('popup-overlay');
     if (existingPopup) existingPopup.remove();
     const popupHtml = `
@@ -612,7 +632,7 @@ function showMealPopup(imagePath, mealName, mealInfo) {
 mealList.addEventListener('click', handleMealClick);
 
 function handleMealClick(event) {
-    const clickedMeal = event.target.closest('li'); 
+    const clickedMeal = event.target.closest('li');
     if (!clickedMeal) return;
 
     const mealId = clickedMeal.dataset.mealId;
@@ -623,11 +643,11 @@ function handleMealClick(event) {
     const popupOverlay = document.querySelector('.popup-overlay');
 
     fetchMealImagePath(mealId)
-        .then(imagePath => {
-            console.log('Fetched Image Path:', imagePath); 
+        .then((imagePath) => {
+            console.log('Fetched Image Path:', imagePath);
             showMealPopup(imagePath, mealName, mealInfo);
         })
-        .catch(error => console.error('Error fetching image path:', error));
+        .catch((error) => console.error('Error fetching image path:', error));
 }
 
 function getMealName(mealElement) {
@@ -643,7 +663,7 @@ function logMealDetails(mealName, mealInfo) {
     console.log(`Details: ${mealInfo}`);
 }
 
-function shareMeal(){
-    alert("Share Meal function is pending implementation.");
-    console.log("Share button clicked!");
+function shareMeal() {
+    alert('Share Meal function is pending implementation.');
+    console.log('Share button clicked!');
 }

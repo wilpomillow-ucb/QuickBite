@@ -26,6 +26,12 @@ from inference_sdk import InferenceHTTPClient
 import requests
 from dotenv import load_dotenv
 import json
+from openai import OpenAI
+import base64
+from io import BytesIO
+from pydantic import BaseModel
+from enum import Enum
+from PIL import Image
 
 # Load environment variables from .env file
 load_dotenv()
@@ -33,6 +39,7 @@ load_dotenv()
 # Retrieve the API key from the environment variable
 rb_api_key = os.environ.get("ROBOFLOW_API_KEY")
 edamam_api_key = os.environ.get("EDAMAM_API_KEY")
+openai_api_key = os.environ.get("OPENAI_API_KEY")
 
 # Check if the API key is set
 if not (rb_api_key and edamam_api_key):
@@ -44,6 +51,45 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 CLIENT = InferenceHTTPClient(
     api_url="https://classify.roboflow.com", api_key=rb_api_key
 )
+
+# GPT-4o setup
+OPENAI_CLIENT = OpenAI(api_key=openai_api_key)
+
+CLASSES = [
+    "chocolate_mousse",
+    "panna_cotta",
+    "churro",
+    "creme_brulee",
+    "dumpling",
+    "macaroni_and_cheese",
+    "boiled_egg",
+    "risotto",
+    "gnocchi",
+    "macaron",
+    "cannoli",
+    "linguine",
+    "eggs_benedict",
+    "burrito",
+    "apple_pie",
+    "grilled_cheese_sandwich",
+    "onion_rings",
+    "ice_cream",
+    "edamame",
+    "fried_rice",
+    "filet_mignon",
+    "tempura",
+    "lasagna",
+    "donut",
+    "pancake",
+]
+
+classes_text = "\n".join(CLASSES)
+
+PROMPT = f"""
+Classify the following image into one of the following categories. Return the category name.
+{classes_text}
+"""
+
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = "your_secret_key"
@@ -82,9 +128,56 @@ CREATE TABLE IF NOT EXISTS users (
 )
 
 
-def classify_image(image_path):
+def classify_image_yolov8(image_path):
     result = CLIENT.infer(image_path, model_id="food-classification-rtszh/4")
     return result
+
+
+FoodCategory = Enum("FoodCategory", CLASSES)
+
+
+class ClassificationOutput(BaseModel):
+    category_name: str
+
+
+def encode_image(image):
+    # resize to 512x512
+    image = image.resize((512, 512))
+
+    buffer = BytesIO()
+    image.save(buffer, format="JPEG")
+    image_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    return f"data:image/jpeg;base64,{image_str}"
+
+
+def classify_image_gpt_4o(image_path):
+    image = Image.open(image_path)
+
+    response = OPENAI_CLIENT.beta.chat.completions.parse(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": PROMPT},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": encode_image(image),
+                            "detail": "high",
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=300,
+        response_format=ClassificationOutput,
+    )
+
+    return {
+        "predictions": [{"class": response.choices[0].message.parsed.category_name}]
+    }
 
 
 def recipe_search(food_query):
@@ -306,6 +399,14 @@ def submit_feedback():
 def upload():
     if "file" not in request.files:
         return jsonify({"status": "error", "message": "No file part"})
+
+    model = request.form["model"]
+    if model == "yolov8":
+        classify_image = classify_image_yolov8
+    elif model == "gpt-4o":
+        classify_image = classify_image_gpt_4o
+    else:
+        return jsonify({"status": "error", "message": "Invalid model"})
 
     file = request.files["file"]
     if file.filename == "":

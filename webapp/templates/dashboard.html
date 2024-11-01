@@ -121,6 +121,12 @@
 
     <div class="bottom-bar">
         <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+            <!-- Dropdown to chose the model -->
+            <select id="model-select" name="model">
+                <option value="yolov8">YOLOv8</option>
+                <!--option value="deit">DeiT</option-->
+                <option value="gpt-4o">GPT-4o</option>
+            </select>
             <input type="file" id="fileInput" name="file" style="display: none;" accept="image/*"
                 onchange="uploadImage()">
         </form>
