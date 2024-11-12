@@ -90,6 +90,8 @@ Classify the following image into one of the following categories. Return the ca
 {classes_text}
 """
 
+PROMPT_NO_CLASSES = "What meal is in this image? Keep your answer to less than a few words, I want just the meal name."
+
 PREFERENCES = [
     "Vegetarian",
     "Vegan",
@@ -187,6 +189,34 @@ def classify_image_gpt_4o(image_path):
     return {
         "predictions": [{"class": response.choices[0].message.parsed.category_name}]
     }
+
+
+def classify_image_gpt_4o_no_classes(image_path):
+    image = Image.open(image_path)
+
+    response = OPENAI_CLIENT.beta.chat.completions.parse(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": PROMPT_NO_CLASSES},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": encode_image(image),
+                            "detail": "high",
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=300,
+    )
+
+    print(response)
+
+    return {"predictions": [{"class": response.choices[0].message.content}]}
 
 
 def recipe_search(food_query):
@@ -469,6 +499,8 @@ def upload():
         classify_image = classify_image_yolov8
     elif model == "gpt-4o":
         classify_image = classify_image_gpt_4o
+    elif model == "gpt-4o-no-classes":
+        classify_image = classify_image_gpt_4o_no_classes
     else:
         return jsonify({"status": "error", "message": "Invalid model"})
 
