@@ -403,8 +403,20 @@ function displayNutritionalInfo(recipe, uploadedImagePath) {
     console.log(recipe);
 
     // Add consts for diet labels, health labels, and cautions
+    const userLabels = Object.keys(window.nutritionPreferences).filter((label) => window.nutritionPreferences[label]);
     const combinedLabels = [...new Set([...recipe.dietLabels, ...recipe.healthLabels, ...recipe.cautions])];
-    const labelPills = combinedLabels
+
+    const userLabelPills = userLabels
+        .map((label) => {
+            if (combinedLabels.includes(label)) {
+                return `<span class="pill pill-satisfied">${label}</span>`;
+            } else {
+                return `<span class="pill pill-unsatisfied">${label}</span>`;
+            }
+        })
+        .join('');
+    const otherLabelPills = combinedLabels
+        .filter((label) => !userLabels.includes(label))
         .map((label) => {
             return `<span class="pill">${label}</span>`;
         })
@@ -446,7 +458,8 @@ function displayNutritionalInfo(recipe, uploadedImagePath) {
 
         <h3>Labels</h3>
         <div class="scrollable-container">
-            ${labelPills}
+            ${userLabelPills}
+            ${otherLabelPills}
         </div>
 
         <h3>Potential Ingredients</h3>

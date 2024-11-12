@@ -209,6 +209,17 @@ def get_next_image_name():
         index += 1
 
 
+def get_nutrition_preferences(db, user_id):
+    cursor = db.cursor()
+    cursor.execute("SELECT nutrition_preferences FROM users WHERE id = ?", (user_id,))
+    user_data = cursor.fetchone()
+    raw_preferences = json.loads(user_data[0]) if user_data[0] else {}
+    return {
+        preference: raw_preferences.get(preference, False) is not False
+        for preference in PREFERENCES
+    }
+
+
 # User Model for Flask-Login (Test user: test@test.com, pass:testtest)
 class User(UserMixin):
     def __init__(self, id, email, password, signup_time, nutrition_preferences):
@@ -391,12 +402,7 @@ def preferences():
         flash("Preferences saved!", "success")
 
     # Load the user's preferences
-    cursor = db.cursor()
-    cursor.execute(
-        "SELECT nutrition_preferences FROM users WHERE id = ?", (current_user.id,)
-    )
-    user_data = cursor.fetchone()
-    preferences = json.loads(user_data[0]) if user_data[0] else {}
+    preferences = get_nutrition_preferences(db, current_user.id)
     print("Loaded preferences:", preferences)
 
     db.close()

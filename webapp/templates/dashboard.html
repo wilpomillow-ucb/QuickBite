@@ -28,7 +28,11 @@
         }
     </style>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/bite.png') }}">
-
+    <script>
+        {% autoescape false %}
+        window.nutritionPreferences = {{ user.nutrition_preferences }};
+        {% endautoescape %}
+    </script>
 </head>
 
 <body class="no-background">

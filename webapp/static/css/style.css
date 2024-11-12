@@ -792,10 +792,20 @@ footer a:hover {
     transition: background-color 0.3s ease;
 }
 
-.pill:hover {
+.pill-satisfied {
     background-color: #28a745;
     color: white;
 }
+
+.pill-unsatisfied {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* .pill:hover {
+    background-color: #28a745;
+    color: white;
+} */
 
 .overlay {
     position: fixed;
