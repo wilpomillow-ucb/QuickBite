@@ -90,6 +90,14 @@ Classify the following image into one of the following categories. Return the ca
 {classes_text}
 """
 
+PREFERENCES = [
+    "Vegetarian",
+    "Vegan",
+    "Gluten-Free",
+    "Peanut-Free",
+]
+DEFAULT_PREFERENCES = {preference: False for preference in PREFERENCES}
+
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = "your_secret_key"
@@ -117,12 +125,13 @@ def close_db(exception):
 conn = sqlite3.connect("database.db", check_same_thread=False)
 cursor = conn.cursor()
 cursor.execute(
-    """
+    f"""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    signup_time TEXT NOT NULL
+    signup_time TEXT NOT NULL,
+    nutrition_preferences TEXT DEFAULT '{json.dumps(DEFAULT_PREFERENCES)}'
 )
 """
 )
@@ -202,11 +211,12 @@ def get_next_image_name():
 
 # User Model for Flask-Login (Test user: test@test.com, pass:testtest)
 class User(UserMixin):
-    def __init__(self, id, email, password, signup_time):
+    def __init__(self, id, email, password, signup_time, nutrition_preferences):
         self.id = id
         self.email = email
         self.password = password
         self.signup_time = signup_time
+        self.nutrition_preferences = nutrition_preferences
 
 
 @login_manager.user_loader
@@ -249,7 +259,9 @@ def home():
             cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
             user_data = cursor.fetchone()
             if user_data and bcrypt.checkpw(password.encode("utf-8"), user_data[2]):
-                user = User(user_data[0], user_data[1], user_data[2], user_data[3])
+                user = User(
+                    user_data[0], user_data[1], user_data[2], user_data[3], user_data[4]
+                )
                 login_user(user)
                 session["user_id"] = user_data[0]
                 return redirect(url_for("dashboard"))
@@ -344,6 +356,52 @@ def dashboard():
         user_id=current_user.id,
         meals_last_7_days=json.dumps(meals_last_7_days),
     )
+
+
+PREFERENCES = [
+    "Vegetarian",
+    "Vegan",
+    "Gluten-Free",
+    "Peanut-Free",
+]
+
+
+@app.route("/preferences", methods=["GET", "POST"])
+@login_required
+def preferences():
+    db = get_db()
+
+    if request.method == "POST":
+        preferences_form = request.form.to_dict()
+        preferences = {
+            preference: preferences_form.get(preference) == "on"
+            for preference in PREFERENCES
+        }
+
+        print("Saving preferences:", preferences)
+
+        # Save the user's preferences
+        cursor = db.cursor()
+        cursor.execute(
+            "UPDATE users SET nutrition_preferences = ? WHERE id = ?",
+            (json.dumps(preferences), current_user.id),
+        )
+        db.commit()
+
+        flash("Preferences saved!", "success")
+
+    # Load the user's preferences
+    cursor = db.cursor()
+    cursor.execute(
+        "SELECT nutrition_preferences FROM users WHERE id = ?", (current_user.id,)
+    )
+    user_data = cursor.fetchone()
+    preferences = json.loads(user_data[0]) if user_data[0] else {}
+    print("Loaded preferences:", preferences)
+
+    db.close()
+
+    return render_template("preferences.html", preferences=preferences)
 
 
 @app.route("/get_user_id")
