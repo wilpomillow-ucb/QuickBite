@@ -19,7 +19,6 @@ from flask_login import (
 )
 import bcrypt
 from email_validator import validate_email, EmailNotValidError
-import sqlite3
 from datetime import datetime, timezone, timedelta
 import os
 from inference_sdk import InferenceHTTPClient
@@ -32,6 +31,8 @@ from io import BytesIO
 from pydantic import BaseModel
 from enum import Enum
 from PIL import Image
+from aws_advanced_python_wrapper import AwsWrapperConnection
+from mysql.connector import Connect
 
 # Load environment variables from .env file
 load_dotenv()
@@ -109,34 +110,86 @@ login_manager = LoginManager(app)
 # from flask_wtf.csrf import CSRFProtect
 # csrf = CSRFProtect(app)
 
+# Connect to turso and setup a local replica of the database
+DB_HOST = os.environ.get("DB_HOST")
+DB_USERNAME = os.environ.get("DB_USERNAME")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_CONNECTION = AwsWrapperConnection.connect(
+    Connect,
+    f"host={DB_HOST} database=quickbite user={DB_USERNAME} password={DB_PASSWORD}",
+    plugins="failover",
+    wrapper_dialect="aurora-mysql",
+    autocommit=True,
+)
+
 
 def get_db():
-    if "db" not in g:
-        g.db = sqlite3.connect("database.db")
-    return g.db
+    return DB_CONNECTION
 
 
-@app.teardown_appcontext
-def close_db(exception):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
-
-
-# Setup in-memory SQLite database
-conn = sqlite3.connect("database.db", check_same_thread=False)
+# Setup database
+conn = get_db()
 cursor = conn.cursor()
 cursor.execute(
     f"""
 CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    signup_time TEXT NOT NULL,
-    nutrition_preferences TEXT DEFAULT '{json.dumps(DEFAULT_PREFERENCES)}'
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    signup_time VARCHAR(255) NOT NULL,
+    nutrition_preferences TEXT
 )
 """
 )
+# DEFAULT '{json.dumps(DEFAULT_PREFERENCES)}'
+cursor.execute(
+    """
+CREATE TABLE if not exists diary_meal_entries (
+    id              INTEGER PRIMARY KEY AUTO_INCREMENT,
+    user_id         INTEGER NOT NULL,
+    meal_name       VARCHAR(255)    NOT NULL,
+    SUGAR_added_g   INTEGER,
+    CA_mg           INTEGER,
+    CHOCDF_net_g    INTEGER,
+    CHOCDF_g        INTEGER,
+    CHOLE_mg        INTEGER,
+    ENERC_KCAL_kcal INTEGER,
+    FAMS_g          INTEGER,
+    FAPU_g          INTEGER,
+    FASAT_g         INTEGER,
+    FATRN_g         INTEGER,
+    FIBTG_g         INTEGER,
+    FOLDFE_microg   INTEGER,
+    FOLFD_microg    INTEGER,
+    FOLAC_microg    INTEGER,
+    FE_mg           INTEGER,
+    MG_mg           INTEGER,
+    NIA_mg          INTEGER,
+    P_mg            INTEGER,
+    K_mg            INTEGER,
+    PROCNT_g        INTEGER,
+    RIBF_mg         INTEGER,
+    NA_mg           INTEGER,
+    SUGAR_ALCOHOL_g INTEGER,
+    SUGAR_g         INTEGER,
+    THIA_mg         INTEGER,
+    FAT_g           INTEGER,
+    VITA_RAE_microg INTEGER,
+    VITB12_microg   INTEGER,
+    VITB6A_mg       INTEGER,
+    VITC_mg         INTEGER,
+    VITD_microg     INTEGER,
+    TOCPHA_mg       INTEGER,
+    VITK_microg     INTEGER,
+    WATER_g         INTEGER,
+    ZN_mg           INTEGER,
+    timestamp       VARCHAR(255)    NOT NULL,
+    path_to_image   VARCHAR(255),
+    serving_count   INTEGER
+);
+"""
+)
+conn.commit()
 
 
 def classify_image_yolov8(image_path):
@@ -241,7 +294,7 @@ def get_next_image_name():
 
 def get_nutrition_preferences(db, user_id):
     cursor = db.cursor()
-    cursor.execute("SELECT nutrition_preferences FROM users WHERE id = ?", (user_id,))
+    cursor.execute("SELECT nutrition_preferences FROM users WHERE id = %s", (user_id,))
     user_data = cursor.fetchone()
     raw_preferences = json.loads(user_data[0]) if user_data[0] else {}
     return {
@@ -264,7 +317,8 @@ class User(UserMixin):
 def load_user(user_id):
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    print("User ID:", user_id)
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
     user_data = cursor.fetchone()
     if user_data:
         return User(*user_data)
@@ -297,9 +351,11 @@ def home():
         cursor = db.cursor()
 
         if action == "login":
-            cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
             user_data = cursor.fetchone()
-            if user_data and bcrypt.checkpw(password.encode("utf-8"), user_data[2]):
+            if user_data and bcrypt.checkpw(
+                password.encode("utf-8"), user_data[2].encode("utf-8")
+            ):
                 user = User(
                     user_data[0], user_data[1], user_data[2], user_data[3], user_data[4]
                 )
@@ -317,13 +373,13 @@ def home():
                 signup_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
                 try:
                     cursor.execute(
-                        "INSERT INTO users (email, password, signup_time) VALUES (?, ?, ?)",
+                        "INSERT INTO users (email, password, signup_time) VALUES (%s, %s, %s)",
                         (email, hashed_password, signup_time),
                     )
                     db.commit()
                     flash("Account created! You can now log in.", "success")
                     return redirect(url_for("home"))
-                except sqlite3.IntegrityError:
+                except ValueError:  # TODO: check the exception type
                     flash("Email already exists.", "error")
                 except Exception as e:
                     flash("An error occurred. Please try again.", "error")
@@ -340,7 +396,7 @@ def dashboard():
     cursor.execute(
         """SELECT *, ENERC_KCAL_kcal as calories, 
                    PROCNT_g as protein, CHOCDF_g as carbs, FAT_g as fat, timestamp FROM diary_meal_entries 
-                   WHERE user_id = ? ORDER BY datetime(timestamp) DESC""",
+                   WHERE user_id = %s ORDER BY datetime(timestamp) DESC""",
         (current_user.id,),
     )
     meals = cursor.fetchall()
@@ -355,7 +411,7 @@ def dashboard():
                SUM(CHOCDF_g) as carbs, 
                SUM(FAT_g) as fat
         FROM diary_meal_entries 
-        WHERE user_id = ? AND timestamp >= ? 
+        WHERE user_id = %s AND timestamp >= %s 
         GROUP BY day 
         ORDER BY day DESC
     """,
@@ -386,8 +442,6 @@ def dashboard():
     #         "y": {"field": "calories", "type": "quantitative"}
     #     }
     # }
-
-    db.close()
 
     # Pass the meals to the dashboard template
     return render_template(
@@ -424,7 +478,7 @@ def preferences():
         # Save the user's preferences
         cursor = db.cursor()
         cursor.execute(
-            "UPDATE users SET nutrition_preferences = ? WHERE id = ?",
+            "UPDATE users SET nutrition_preferences = %s WHERE id = %s",
             (json.dumps(preferences), current_user.id),
         )
         db.commit()
@@ -434,8 +488,6 @@ def preferences():
     # Load the user's preferences
     preferences = get_nutrition_preferences(db, current_user.id)
     print("Loaded preferences:", preferences)
-
-    db.close()
 
     return render_template("preferences.html", preferences=preferences)
 
@@ -526,9 +578,8 @@ def get_image_path():
     db = get_db()
     cursor = db.cursor()
 
-    cursor.execute("SELECT * FROM diary_meal_entries WHERE id = ? LIMIT 1", (meal_id,))
+    cursor.execute("SELECT * FROM diary_meal_entries WHERE id = %s LIMIT 1", (meal_id,))
     result = cursor.fetchone()
-    db.close()
 
     if result:
         return jsonify(
@@ -564,7 +615,7 @@ def add_to_diary():
 
         print("Parsed data:", meal_name, serving_count, nutritional_data)
 
-        conn = sqlite3.connect("database.db")
+        conn = get_db()
         cursor = conn.cursor()
 
         scaled_nutritional_data = {
@@ -579,7 +630,7 @@ def add_to_diary():
                 FOLAC_microg, FE_mg, MG_mg, NIA_mg, P_mg, K_mg, PROCNT_g, RIBF_mg, NA_mg, SUGAR_ALCOHOL_g, 
                 SUGAR_g, THIA_mg, FAT_g, VITA_RAE_microg, VITB12_microg, VITB6A_mg, VITC_mg, VITD_microg, 
                 TOCPHA_mg, VITK_microg, WATER_g, ZN_mg, timestamp, path_to_image, serving_count
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
             (
                 user_id,
@@ -627,7 +678,6 @@ def add_to_diary():
         print("Inserted into database")
 
         conn.commit()
-        conn.close()
 
         return jsonify({"status": "success", "message": "Meal added to diary!"})
 
