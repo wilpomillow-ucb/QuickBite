@@ -439,6 +439,40 @@ def preferences():
 
     return render_template("preferences.html", preferences=preferences)
 
+@app.route("/goals", methods=["GET"])
+@login_required
+def goals():
+    # db = get_db()
+
+    # if request.method == "POST":
+    #     preferences_form = request.form.to_dict()
+    #     preferences = {
+    #         preference: preferences_form.get(preference) == "on"
+    #         for preference in PREFERENCES
+    #     }
+
+    #     print("Saving preferences:", preferences)
+
+    #     # Save the user's preferences
+    #     cursor = db.cursor()
+    #     cursor.execute(
+    #         "UPDATE users SET nutrition_preferences = ? WHERE id = ?",
+    #         (json.dumps(preferences), current_user.id),
+    #     )
+    #     db.commit()
+
+    #     flash("Preferences saved!", "success")
+
+    # # Load the user's preferences
+    # preferences = get_nutrition_preferences(db, current_user.id)
+    # print("Loaded preferences:", preferences)
+
+    # db.close()
+    goals = {}
+    print ("Goals placeholder:", goals)
+    
+    return render_template("goals.html", goals=goals)
+
 
 @app.route("/get_user_id")
 @login_required

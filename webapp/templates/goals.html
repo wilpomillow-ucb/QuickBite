@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Goals</title>
+    <link href="https://fonts.googleapis.com/css2?family=Acme&family=Righteous&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/bite.png') }}">
+</head>
+
+<body>
+    <a href="{{ url_for('dashboard') }}" class="back-button" aria-label="return to home">← Back</a>
+    <style>
+        #form-container {
+            display: flex;
+            padding: 10px;
+            flex-direction: column;
+            background-color: white;
+            width: 50%;
+            height: 50%;
+            border-radius: 10px;
+        }
+
+        h2 {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 40px;
+            color: #28a745;
+            margin: 50px 0 0 50px;
+        }
+
+        form {
+            box-sizing: border-box;
+            height: 100%;
+            padding: 20px 50px 50px 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: space-between;
+            gap: 10px;
+        }
+
+        form div {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            flex: 1 1 100%;
+        }
+
+        label {
+            flex: 1 1 50%;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        input {
+            border-radius: 10px;
+            border: 1px solid black;
+            flex: 1 1 25%;
+            display: block;
+            width: 100%;
+        }
+
+        .calories {
+            box-sizing: border-box;
+            padding: 10px;
+            color: white;
+            font-weight: 800;
+            background-color: #28a745;
+            border-radius: 10px;
+
+        }
+
+        div.auto {
+            flex: 1 1 25%;
+            display: flex;
+            align-items: center;
+            flex-direction: row-reverse;
+            box-sizing: border-box;
+            padding-right: 5px;
+        }
+
+        input:not([type="submit"]) {
+            text-align: right;
+
+        }
+    </style>
+    <div id="form-container">
+        <div>
+            <h2>Goals</h2>
+        </div>
+        <form>
+            <div class="calories">
+                <label for="calories">Calories (kcal)</label>
+                <div class="auto" name="calories-hidden"></div>
+                <input name="calories" type="number">
+            </div>
+            <div class="auto">% of calories</div>
+            <div>
+                <label for="carbs">Carbohydrates</label>
+                <div class="auto" name="carbs-grams">0g</div>
+                <input name="carbs" min=0 max=100 type="number">
+            </div>
+            <div>
+                <label for="proteins">Proteins</label>
+                <div class="auto" name="protein-grams">0g</div>
+                <input name="proteins" min=0 max=100 type="number">
+            </div>
+            <div>
+                <label for="fats">Fats</label>
+                <div class="auto" name="fats-grams">0g</div>
+                <input name="fats" min=0 max=100 type="number">
+            </div>
+            <div>
+                <input type="submit">
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>
