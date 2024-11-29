@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     JSON.parse(document.getElementById('goals-data').textContent)
     const goalsToday = JSON.parse(document.getElementById('goals-data').textContent);
-      
+        console.log(goalsToday)
         // Map the data to include the calculated pct_goal and remaining_pct (percentage of goal)
         const vegaData = goalsToday.map(entry => {
             const pctGoal = entry[3];
@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', function () {
     
             return {
                 nutrients: entry[0],  // Nutrient type (e.g., Calories, Carbs)
-                calories: entry[1],    // Daily Calories
-                goals: entry[2],       // Goals
-                pct_goal: validPctGoal,  // Percentage of goal
+                calories: entry[1],    // Daily Calories -- actual meal values (calories - g, others - %)
+                goals: entry[2],       // Goals (%)
+                pct_goal: validPctGoal,  // Percentage of goal (meals % relative to user-defined goal)
                 remaining_pct: remainingPct  // Remaining part of the goal
             };
         });
@@ -26,7 +26,24 @@ document.addEventListener('DOMContentLoaded', function () {
         // Function to generate and render the pie chart for each nutrient
         const renderGraphForNutrient = (nutrient) => {
             const nutrientData = vegaData.filter(entry => entry.nutrients === nutrient);
-    
+            // clean data
+            const pieData = {
+                values: [{
+                    category: "Percent met to goal",
+                    pct_goal: nutrientData[0].pct_goal,
+                    "color": "rgb(40, 167, 69)"
+                }, 
+                {
+                    category: "Remaining percent to goal",
+                    pct_goal: nutrientData[0].remaining_pct,
+                    "color": "rgb(155, 232, 173)"
+                }]
+            }
+
+            // // odd concatenation
+            // console.log('nutrientData CONCAT', nutrientData.concat(nutrientData.map(entry => ({
+            //     pct_goal: entry.remaining_pct,
+            // }))))
             // Create the Vega-Lite specification for the pie chart of the given nutrient
             const vegaSpec = {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
@@ -34,12 +51,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 "height": 400,     
                 "description": `${nutrient} Nutrition Goal`,  
                 "background": "#f9f9f9",
-                "data": {
-                    "values": nutrientData.concat(nutrientData.map(entry => ({
-                        nutrients: entry.nutrients, // Repeat the nutrient name for the remaining part
-                        pct_goal: entry.remaining_pct, // Use remaining_pct for the remaining part
-                        remaining_pct: 0  // Set to 0, as this slice is the remainder
-                    })))
+                "data": pieData,
+                "config": {
+                    "style": {
+                        "cell": {
+                            "stroke": "transparent"
+                        }
+                    }
                 },
                 "mark":  {
                     "type": "arc",  // Use the "arc" mark to create a pie chart
@@ -49,33 +67,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 "encoding": {
                     "theta": {
                         "field": "pct_goal",  // Use pct_goal for the angular position of the slice
-                        "type": "quantitative"
+                        "type": "quantitative",
+                        "stack": true
                     },
                     "color": {
-                        "field": "pct_goal",  // Color the slice based on pct_goal value
-                        "type": "quantitative",
-                        "scale": {
-                            "scheme": "greens"  // Use a color scheme for the pct_goal values
-                        },
-                        "legend": null
+                        "field": "color", "type": "nominal", "legend": null, "scale": {
+                            "scheme": "greens"
+                        }
                     },
                     "tooltip": [
                         {
-                            "field": "pct_goal", 
-                            "title": "Goal %", 
-                            "format": ".2f"  // Display as a float with 2 decimal places (e.g., 50.00)
+                            field: "category",
+                            title: "category",
                         },
+                        // {
+                        //     "field": "pct_goal", 
+                        //     "title": "Goal %", 
+                        //     "format": ".2f"  // Display as a float with 2 decimal places (e.g., 50.00)
+                        // },
                         {
                             "field": "pct_goal", 
                             "title": "Goal %", 
                             "format": ".2f",  // Format number to 2 decimal places
                             "type": "quantitative",  // Ensure it's treated as a number
-                            "expression": "datum.pct_goal + '%'"  // Append '%' sign to the value
-                        }
+                            "expression": "datum.category + '%'"  // Append '%' sign to the value
+                        },
                     ]
                 }, 
                 "title": { 
-                    "text": `${nutrient} is ${nutrientData[0].pct_goal.toFixed(0)}% to Your Goal`, // Add the nutrient name at the top of the chart
+                    "text": `${nutrient}\nis ${nutrientData[0].pct_goal.toFixed(0)}% to Your Goal`, // Add the nutrient name at the top of the chart
                     "anchor": "middle", 
                     "fontSize": 14, 
                     "font": "Righteous",
@@ -83,6 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             };
         
+            console.log('vegaSpec.data', vegaSpec.data.values)
             // Render the pie chart for this nutrient in the respective div
             vegaEmbed(`#${nutrient}-graph`, vegaSpec, {renderer: "svg", actions: false})
                 .then(() => console.log(`${nutrient} pie chart rendered successfully.`))
