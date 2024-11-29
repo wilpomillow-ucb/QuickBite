@@ -60,6 +60,8 @@
             flex: 1 1 25%;
             display: block;
             width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
         }
 
         .calories {
@@ -90,33 +92,71 @@
         <div>
             <h2>Goals</h2>
         </div>
-        <form>
+        <form id="goalsForm" action="/goals" method="POST">
+            <!-- <div style="display:none">{% for key, value in goals.items() %}
+                <span>{{ key }} {{ value }}</span>
+            {% endfor %}
+        </div> -->
             <div class="calories">
-                <label for="calories">Calories (kcal)</label>
+                <label for="Calories">Calories (kcal)</label>
                 <div class="auto" name="calories-hidden"></div>
-                <input name="calories" type="number">
+                <input name="Calories" type="number" value="{{ goals.get('Calories') }}" required>
             </div>
             <div class="auto">% of calories</div>
             <div>
-                <label for="carbs">Carbohydrates</label>
-                <div class="auto" name="carbs-grams">0g</div>
-                <input name="carbs" min=0 max=100 type="number">
+                <label for="Carbs">Carbohydrates</label>
+                <div class="auto" name="carbs-grams">{{ '%0.2f' % (goals.get('Calories')|int * (goals.get('Carbs')|int /
+                    100) / 4)|float if goals else 0 }}g</div>
+                <input name="Carbs" min=0 max=100 type="number" value="{{ goals.get('Carbs') }}" required>
             </div>
             <div>
-                <label for="proteins">Proteins</label>
-                <div class="auto" name="protein-grams">0g</div>
-                <input name="proteins" min=0 max=100 type="number">
+                <label for="Proteins">Proteins</label>
+                <div class="auto" name="protein-grams">{{ '%0.2f' % (goals.get('Calories')|int *
+                    (goals.get('Proteins')|int / 100) / 4)|float if goals else 0 }}g</div>
+                <input name="Proteins" min=0 max=100 type="number" value="{{ goals.get('Proteins') }}" required>
             </div>
             <div>
-                <label for="fats">Fats</label>
-                <div class="auto" name="fats-grams">0g</div>
-                <input name="fats" min=0 max=100 type="number">
+                <label for="Fats">Fats</label>
+                <div class="auto" name="fats-grams">{{ '%0.2f' % (goals.get('Calories')|int * (goals.get('Fats')|int /
+                    100) / 9)|float if goals else 0 }}g</div>
+                <input name="Fats" min=0 max=100 type="number" value="{{ goals.get('Fats') }}" required>
             </div>
             <div>
                 <input type="submit">
             </div>
         </form>
     </div>
+    <script type="text/javascript">
+        console.log('Adding input event listeners')
+        let inputs = [...document.querySelectorAll('input:not([type="submit"])')]
+        console.log(inputs)
+        inputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                let [nutrientName, newValue] = [e.target.name, e.target.value]
+                if (nutrientName === 'Calories') {
+                    recalculateAllGrams()
+                } else {
+                    recalculateGrams(nutrientName, newValue)
+                }
+            })
+        })
+
+        const recalculateAllGrams = () =>{
+            console.log('recalculate all!!!')
+            // recalculateGrams()
+            // recalculateGrams()
+            // reCalculateGrams()
+
+        }
+        const recalculateGrams = (nutrientName, newValue) =>{
+            
+            console.log('recalculate', nutrientName, newValue)
+            // get gram container
+            // get nutrients % of total calories
+            // update gram container based on calculation
+        }
+
+    </script>
 </body>
 
 </html>

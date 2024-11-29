@@ -100,6 +100,14 @@ PREFERENCES = [
 ]
 DEFAULT_PREFERENCES = {preference: False for preference in PREFERENCES}
 
+GOALS = [
+    "Calories",
+    "Carbs",
+    "Proteins",
+    "Fats"
+]
+
+DEFAULT_GOALS = {goal: 0 for goal in GOALS}
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = "your_secret_key"
@@ -133,7 +141,8 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     signup_time TEXT NOT NULL,
-    nutrition_preferences TEXT DEFAULT '{json.dumps(DEFAULT_PREFERENCES)}'
+    nutrition_preferences TEXT DEFAULT '{json.dumps(DEFAULT_PREFERENCES)}',
+    goals TEXT DEFAULT '{json.dumps(DEFAULT_GOALS)}'
 )
 """
 )
@@ -249,15 +258,25 @@ def get_nutrition_preferences(db, user_id):
         for preference in PREFERENCES
     }
 
+def get_goals(db, user_id):
+    cursor = db.cursor()
+    cursor.execute("SELECT goals FROM users WHERE id = ?", (user_id,))
+    user_data = cursor.fetchone()
+    raw_goals = json.loads(user_data[0]) if user_data[0] else {}
+    return {
+        goal: raw_goals.get(goal, "0")
+        for goal in GOALS
+    }
 
 # User Model for Flask-Login (Test user: test@test.com, pass:testtest)
 class User(UserMixin):
-    def __init__(self, id, email, password, signup_time, nutrition_preferences):
+    def __init__(self, id, email, password, signup_time, nutrition_preferences, goals):
         self.id = id
         self.email = email
         self.password = password
         self.signup_time = signup_time
         self.nutrition_preferences = nutrition_preferences
+        self.goals = goals
 
 
 @login_manager.user_loader
@@ -301,7 +320,7 @@ def home():
             user_data = cursor.fetchone()
             if user_data and bcrypt.checkpw(password.encode("utf-8"), user_data[2]):
                 user = User(
-                    user_data[0], user_data[1], user_data[2], user_data[3], user_data[4]
+                    user_data[0], user_data[1], user_data[2], user_data[3], user_data[4], user_data[5]
                 )
                 login_user(user)
                 session["user_id"] = user_data[0]
@@ -363,29 +382,60 @@ def dashboard():
     )
     meals_last_7_days = cursor.fetchall()
 
-    # Lina todo : other interesting data sets? Steps are:
-    # lookup --> cursor.execute ( custom SQL query )
-    # in the below return statement, create a new prop that gets passed to the dashboard.html template
+    # Get the nutrients of all meals of the day
+    # nedd to match DATE(TIMESTAMP) to python version of "date"
+    # today = datetime.now().date()
+    cursor.execute(
+        """
+        WITH current_user_diary_meal_entries AS (
+        SELECT * FROM diary_meal_entries 
+        WHERE user_id = ? AND DATE(timestamp) = DATE()
+        )
+        , current_user_table as (
+        SELECT * FROM users
+        WHERE id = ?
+        )
+        , today_nutrients AS (
+        SELECT
+        'Calories' AS nutrients, 
+        SUM(ENERC_KCAL_kcal) AS daily_calories
+        FROM current_user_diary_meal_entries
+        GROUP BY 1 
+        UNION
+        SELECT
+        'Proteins' AS nutrients, 
+        SUM(PROCNT_g)*4/SUM(ENERC_KCAL_kcal)*100 as daily_protein_pct
+        FROM current_user_diary_meal_entries 
+        GROUP BY 1
+        UNION
+        SELECT
+        'Carbs' AS nutrients, 
+        SUM(CHOCDF_g)*4/SUM(ENERC_KCAL_kcal)*100 as daily_carbs_pct
+        FROM current_user_diary_meal_entries 
+        GROUP BY 1
+        UNION 
+        SELECT
+        'Fats' AS nutrients, 
+        SUM(FAT_g)*9/SUM(ENERC_KCAL_kcal)*100 as daily_fat_pct
+        FROM current_user_diary_meal_entries
+        GROUP BY 1
+        ) 
+        , daily_goals as (
+        SELECT KEY AS nutrients, value AS set_goals
+        FROM current_user_table, json_each(goals)
+        ) 
+        SELECT b.nutrients, 
+        ROUND(COALESCE(a.daily_calories,0),2) AS daily_calories, 
+        CAST(b.set_goals AS INTEGER) AS set_goals,
+        ROUND(COALESCE(a.daily_calories,0)/NULLIF(CAST(b.set_goals AS INTEGER),0)*100,2) AS pct_of_goal
+        FROM daily_goals b  
+        LEFT JOIN today_nutrients a ON
+            a.nutrients = b.nutrients 
+    """,
+        (current_user.id, current_user.id,),
+    )
+    goals = cursor.fetchall()
 
-    # days = [entry[0] for entry in meals_last_7_days]
-    # calories = [entry[1] for entry in meals_last_7_days]
-
-    # vega_spec = {
-    #     "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-    #     "width": 500,
-    #     "height": 300,
-    #     "data": {
-    #         "values": [
-    #             {"day": day, "calories": cal}
-    #             for day, cal in zip(days, calories)
-    #         ]
-    #     },
-    #     "mark": "line",
-    #     "encoding": {
-    #         "x": {"field": "day", "type": "temporal", "axis": {"format": "%Y-%m-%d"}},
-    #         "y": {"field": "calories", "type": "quantitative"}
-    #     }
-    # }
 
     db.close()
 
@@ -396,6 +446,7 @@ def dashboard():
         meals=meals,
         user_id=current_user.id,
         meals_last_7_days=json.dumps(meals_last_7_days),
+        goals=json.dumps(goals)
     )
 
 
@@ -439,37 +490,43 @@ def preferences():
 
     return render_template("preferences.html", preferences=preferences)
 
-@app.route("/goals", methods=["GET"])
+GOALS = [
+    "Calories",
+    "Carbs",
+    "Proteins",
+    "Fats"
+]
+
+@app.route("/goals", methods=["GET", "POST"])
 @login_required
 def goals():
-    # db = get_db()
+    db = get_db()
 
-    # if request.method == "POST":
-    #     preferences_form = request.form.to_dict()
-    #     preferences = {
-    #         preference: preferences_form.get(preference) == "on"
-    #         for preference in PREFERENCES
-    #     }
+    if request.method == "POST":
+        goals_form = request.form.to_dict()
+        print("GOALS FORM:", goals_form)
+        goals = {
+            goal: goals_form.get(goal)
+            for goal in GOALS
+        }
 
-    #     print("Saving preferences:", preferences)
+        print("Saving goals:", goals)
 
-    #     # Save the user's preferences
-    #     cursor = db.cursor()
-    #     cursor.execute(
-    #         "UPDATE users SET nutrition_preferences = ? WHERE id = ?",
-    #         (json.dumps(preferences), current_user.id),
-    #     )
-    #     db.commit()
+        # Save the user's goals
+        cursor = db.cursor()
+        cursor.execute(
+            "UPDATE users SET goals = ? WHERE id = ?",
+            (json.dumps(goals), current_user.id),
+        )
+        db.commit()
 
-    #     flash("Preferences saved!", "success")
+        # flash("Goals saved!", "success")
 
-    # # Load the user's preferences
-    # preferences = get_nutrition_preferences(db, current_user.id)
-    # print("Loaded preferences:", preferences)
-
-    # db.close()
-    goals = {}
-    print ("Goals placeholder:", goals)
+    # # Load the user's goals
+    goals = get_goals(db, current_user.id)
+    # goals = {}
+    print ("Loaded goals:", goals)
+    db.close()
     
     return render_template("goals.html", goals=goals)
 
