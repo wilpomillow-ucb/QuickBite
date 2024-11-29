@@ -43,6 +43,7 @@
         </div>
         <div class="center">Nutritional Dashboard</div>
         <div class="right">
+            <a href="{{ url_for('goals') }}" style="text-decoration: none; color: inherit;"> Set Goals</a>
             <a href="{{ url_for('preferences') }}" style="text-decoration: none; color: inherit;">Preferences</a>
             <a href="{{ url_for('logout') }}" style="text-decoration: none; color: inherit;">Log out</a>
         </div>
@@ -81,7 +82,6 @@
                 <div class="carousel-item">
                     <h2>Trailing 7 Day Diet Tracker</h2>
 
-                    <!-- TEST Adding a new div for the parameter selector -->
                     <div id="parameter-selector">
                         <label for="nutrition-select">Select Nutrition:</label>
                         <select id="nutrition-select">
@@ -93,9 +93,6 @@
                     </div>
                     <div id="meals-data" style="display:none">
                         {{ meals_last_7_days }}
-                    </div>
-                    <!-- for new dataset to play with -->
-                    <div id="lina-data-set">
                     </div>
                     <div id="nutrition-graph-7-day">
 
