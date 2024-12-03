@@ -40,6 +40,7 @@ load_dotenv()
 rb_api_key = os.environ.get("ROBOFLOW_API_KEY")
 edamam_api_key = os.environ.get("EDAMAM_API_KEY")
 openai_api_key = os.environ.get("OPENAI_API_KEY")
+ENABLE_DEIT = True
 
 # Check if the API key is set
 if not (rb_api_key and edamam_api_key):
@@ -100,12 +101,7 @@ PREFERENCES = [
 ]
 DEFAULT_PREFERENCES = {preference: False for preference in PREFERENCES}
 
-GOALS = [
-    "Calories",
-    "Carbs",
-    "Proteins",
-    "Fats"
-]
+GOALS = ["Calories", "Carbs", "Proteins", "Fats"]
 
 DEFAULT_GOALS = {goal: 0 for goal in GOALS}
 
@@ -228,6 +224,46 @@ def classify_image_gpt_4o_no_classes(image_path):
     return {"predictions": [{"class": response.choices[0].message.content}]}
 
 
+# Init deit model
+if ENABLE_DEIT:
+    import torch
+    from PIL import Image
+    import numpy as np
+    from torchvision import transforms
+
+    deit_model = torch.load("../data/models/deit_model.pth", weights_only=False)
+    deit_model.eval()
+
+    transform = transforms.Normalize(
+        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+    )
+
+    # Load classes for the deit model
+    with open("./class_list.txt") as f:
+        deit_classes = f.readlines()
+        deit_classes = {
+            int(a): b for [a, b] in [line.strip().split(" ") for line in deit_classes]
+        }
+
+
+def classify_image_deit(image_path):
+    img = Image.open("../data/edamame.png")
+    img = img.resize((224, 224))
+    img = img.convert("RGB")
+    img = np.array(img)
+    img = img / 255.0
+    img = np.transpose(img, (2, 0, 1))
+    img = torch.tensor(img, dtype=torch.float32)
+    img = transform(img)
+    img = img.unsqueeze(0)
+
+    output = deit_model(img)
+    top3_indices = torch.topk(output, 3).indices.squeeze(0).tolist()
+    top3_classes = [deit_classes[idx].replace("_", " ").title() for idx in top3_indices]
+
+    return {"predictions": [{"class": cls} for cls in top3_classes]}
+
+
 def recipe_search(food_query):
     API_KEY = edamam_api_key
     APP_ID = "2a940906"
@@ -258,15 +294,14 @@ def get_nutrition_preferences(db, user_id):
         for preference in PREFERENCES
     }
 
+
 def get_goals(db, user_id):
     cursor = db.cursor()
     cursor.execute("SELECT goals FROM users WHERE id = ?", (user_id,))
     user_data = cursor.fetchone()
     raw_goals = json.loads(user_data[0]) if user_data[0] else {}
-    return {
-        goal: raw_goals.get(goal, "0")
-        for goal in GOALS
-    }
+    return {goal: raw_goals.get(goal, "0") for goal in GOALS}
+
 
 # User Model for Flask-Login (Test user: test@test.com, pass:testtest)
 class User(UserMixin):
@@ -320,7 +355,12 @@ def home():
             user_data = cursor.fetchone()
             if user_data and bcrypt.checkpw(password.encode("utf-8"), user_data[2]):
                 user = User(
-                    user_data[0], user_data[1], user_data[2], user_data[3], user_data[4], user_data[5]
+                    user_data[0],
+                    user_data[1],
+                    user_data[2],
+                    user_data[3],
+                    user_data[4],
+                    user_data[5],
                 )
                 login_user(user)
                 session["user_id"] = user_data[0]
@@ -432,10 +472,12 @@ def dashboard():
         LEFT JOIN today_nutrients a ON
             a.nutrients = b.nutrients 
     """,
-        (current_user.id, current_user.id,),
+        (
+            current_user.id,
+            current_user.id,
+        ),
     )
     goals = cursor.fetchall()
-
 
     db.close()
 
@@ -446,7 +488,7 @@ def dashboard():
         meals=meals,
         user_id=current_user.id,
         meals_last_7_days=json.dumps(meals_last_7_days),
-        goals=json.dumps(goals)
+        goals=json.dumps(goals),
     )
 
 
@@ -490,12 +532,9 @@ def preferences():
 
     return render_template("preferences.html", preferences=preferences)
 
-GOALS = [
-    "Calories",
-    "Carbs",
-    "Proteins",
-    "Fats"
-]
+
+GOALS = ["Calories", "Carbs", "Proteins", "Fats"]
+
 
 @app.route("/goals", methods=["GET", "POST"])
 @login_required
@@ -505,10 +544,7 @@ def goals():
     if request.method == "POST":
         goals_form = request.form.to_dict()
         print("GOALS FORM:", goals_form)
-        goals = {
-            goal: goals_form.get(goal)
-            for goal in GOALS
-        }
+        goals = {goal: goals_form.get(goal) for goal in GOALS}
 
         print("Saving goals:", goals)
 
@@ -525,9 +561,9 @@ def goals():
     # # Load the user's goals
     goals = get_goals(db, current_user.id)
     # goals = {}
-    print ("Loaded goals:", goals)
+    print("Loaded goals:", goals)
     db.close()
-    
+
     return render_template("goals.html", goals=goals)
 
 
@@ -588,6 +624,8 @@ def upload():
     model = request.form["model"]
     if model == "yolov8":
         classify_image = classify_image_yolov8
+    elif model == "deit":
+        classify_image = classify_image_deit
     elif model == "gpt-4o":
         classify_image = classify_image_gpt_4o
     elif model == "gpt-4o-no-classes":
