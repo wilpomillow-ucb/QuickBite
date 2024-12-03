@@ -14,8 +14,15 @@ Individuals managing health conditions, such as diabetes or hypertension, may in
 
 ## Running the Web App Locally
 
-To run QuickBite locally, download the repo and run `app.py`.
-This will be hosted on your local which can be accessed via your web browser at HTTP://127.0.0.1:5000 
+To run QuickBite locally follow these steps
+
+* Clone the repo
+* Install the dependencies (see below)
+    * Note: some dependencies are missing from the list below, please install them as needed
+* Create a .env file and fill in the environment variables as shown in the .env.example file
+* Download the deit model and move it to `data/models/deit_model.pth`
+* Run `app.py`.
+* Visit http://127.0.0.1:5000 in your browser.
 
 Requirements for the environment:
 |Library         |Version                        |Purpose                      |
@@ -35,4 +42,3 @@ API Keys will be required to connect to external APIs:
 |----------------|------------------------------------------------------------------------------------------------------|
 |Edamam          |[Recipe Endpoint](https://developer.edamam.com/edamam-recipe-api)                                     |
 |Roboflow        |[Classification Endpoint](https://docs.roboflow.com/deploy/hosted-api/custom-models/classification)   |
-
