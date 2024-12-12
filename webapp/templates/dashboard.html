@@ -10,6 +10,7 @@
     <script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
     <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
     <script src="{{ url_for('static', filename='js/vega_graph.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/goals_graph.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega@5.20.2"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.2.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"></script>
@@ -42,6 +43,7 @@
         </div>
         <div class="center">Nutritional Dashboard</div>
         <div class="right">
+            <a href="{{ url_for('goals') }}" style="text-decoration: none; color: inherit;"> Set Goals</a>
             <a href="{{ url_for('preferences') }}" style="text-decoration: none; color: inherit;">Preferences</a>
             <a href="{{ url_for('logout') }}" style="text-decoration: none; color: inherit;">Log out</a>
         </div>
@@ -79,9 +81,7 @@
                 <!-- Dashboard Column 2: Trailing 7 Day Diet Tracker -->
                 <div class="carousel-item">
                     <h2>Trailing 7 Day Diet Tracker</h2>
-                    <!-- for dev; prod display none?-->
-                    <style id="dev"> #meals-data{display: none;}</style>
-                    <!-- TEST Adding a new div for the parameter selector -->
+
                     <div id="parameter-selector">
                         <label for="nutrition-select">Select Nutrition:</label>
                         <select id="nutrition-select">
@@ -91,37 +91,62 @@
                             <option value="fat">Fat</option>
                         </select>
                     </div>
-                    <div id="meals-data" >
+                    <div id="meals-data" style="display:none">
                         {{ meals_last_7_days }}
                     </div>
-                    <!-- for new dataset to play with -->
-                    <div id="lina-data-set">
-                    </div> 
                     <div id="nutrition-graph-7-day">
 
                     </div>
+                    <style>
+                        #nutrition-graph-7-day form.vega-bindings {
+                            display: none;
+                        }
+                    </style>
                 </div>
 
-            <!-- Dashboard Column 3: Premim Goal Tracker -->
-            <div class="carousel-item">
-                <h2>Goal Tracker : Premium</h2>
+                <!-- Dashboard Column 3: Premim Goal Tracker -->
+                <div class="carousel-item">
+                    <h2>Today's Goal Tracker</h2>
+                    <div id="goals-data" style="display:none">
+                        {{ goals }}
+                    </div>
+                    <!-- if goals not set -or- food is not available for the day -->
+                    <!-- handled in goals_graph.js -->
+                    <div id="graphs" style="display:none">
+                        <div id="Calories-graph"></div>
+                        <div id="Carbs-graph"></div>
+                        <div id="Fats-graph"></div>
+                        <div id="Proteins-graph"></div>
+                    </div>
+                    <div id="selection" style="display:none;">
+                        <h3>Goals not set, set here</h3>
+                        <a href="{{ url_for('goals') }}" 
+                            style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: white; border-radius: 5px; text-align: center; text-decoration: none;">
+                            Set Goals
+                        </a>
+                    </div>
+                    <!-- 
                 <div class="locked-content">
                     <p>Discover more insights - Get <a href="/premium" style="color: #28a745;">Premium</a> access</p>
+                </div> -->
+                    <!-- <div id="Calories-graph"></div>
+                <div id="Carbs-graph"></div>
+                <div id="Fats-graph"></div>
+                <div id="Proteins-graph"></div> -->
                 </div>
             </div>
-        </div>
 
-        <div class="carousel-controls">
-            <button class="carousel-prev" onclick="prevSlide()">&#10094;</button>
-            <div class="carousel-indicators">
-                <span class="indicator active" onclick="showSlide(0)"></span>
-                <span class="indicator" onclick="showSlide(1)"></span>
-                <span class="indicator" onclick="showSlide(2)"></span>
+            <div class="carousel-controls">
+                <button class="carousel-prev" onclick="prevSlide()">&#10094;</button>
+                <div class="carousel-indicators">
+                    <span class="indicator active" onclick="showSlide(0)"></span>
+                    <span class="indicator" onclick="showSlide(1)"></span>
+                    <span class="indicator" onclick="showSlide(2)"></span>
+                </div>
+                <button class="carousel-next" onclick="nextSlide()">&#10095;</button>
             </div>
-            <button class="carousel-next" onclick="nextSlide()">&#10095;</button>
-        </div>
 
-    </div>
+        </div>
     </div>
 
     <div class="bottom-bar">
@@ -129,7 +154,7 @@
             <!-- Dropdown to chose the model -->
             <select id="model-select" name="model">
                 <option value="yolov8">YOLOv8</option>
-                <!--option value="deit">DeiT</option-->
+                <option value="deit">DeiT</option>
                 <option value="gpt-4o">GPT-4o</option>
                 <option value="gpt-4o-no-classes">GPT-4o (no classes)</option>
             </select>

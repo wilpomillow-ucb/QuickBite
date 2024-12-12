@@ -41,6 +41,7 @@ load_dotenv()
 rb_api_key = os.environ.get("ROBOFLOW_API_KEY")
 edamam_api_key = os.environ.get("EDAMAM_API_KEY")
 openai_api_key = os.environ.get("OPENAI_API_KEY")
+ENABLE_DEIT = True
 
 # Check if the API key is set
 if not (rb_api_key and edamam_api_key):
@@ -101,6 +102,9 @@ PREFERENCES = [
 ]
 DEFAULT_PREFERENCES = {preference: False for preference in PREFERENCES}
 
+GOALS = ["Calories", "Carbs", "Proteins", "Fats"]
+
+DEFAULT_GOALS = {goal: 0 for goal in GOALS}
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = "your_secret_key"
@@ -138,6 +142,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     signup_time VARCHAR(255) NOT NULL,
     nutrition_preferences TEXT
+    goals TEXT DEFAULT '{json.dumps(DEFAULT_GOALS)}'
 )
 """
 )
@@ -272,6 +277,46 @@ def classify_image_gpt_4o_no_classes(image_path):
     return {"predictions": [{"class": response.choices[0].message.content}]}
 
 
+# Init deit model
+if ENABLE_DEIT:
+    import torch
+    from PIL import Image
+    import numpy as np
+    from torchvision import transforms
+
+    deit_model = torch.load("../data/models/deit_model.pth", weights_only=False)
+    deit_model.eval()
+
+    transform = transforms.Normalize(
+        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+    )
+
+    # Load classes for the deit model
+    with open("./class_list.txt") as f:
+        deit_classes = f.readlines()
+        deit_classes = {
+            int(a): b for [a, b] in [line.strip().split(" ") for line in deit_classes]
+        }
+
+
+def classify_image_deit(image_path):
+    img = Image.open("../data/edamame.png")
+    img = img.resize((224, 224))
+    img = img.convert("RGB")
+    img = np.array(img)
+    img = img / 255.0
+    img = np.transpose(img, (2, 0, 1))
+    img = torch.tensor(img, dtype=torch.float32)
+    img = transform(img)
+    img = img.unsqueeze(0)
+
+    output = deit_model(img)
+    top3_indices = torch.topk(output, 3).indices.squeeze(0).tolist()
+    top3_classes = [deit_classes[idx].replace("_", " ").title() for idx in top3_indices]
+
+    return {"predictions": [{"class": cls} for cls in top3_classes]}
+
+
 def recipe_search(food_query):
     API_KEY = edamam_api_key
     APP_ID = "2a940906"
@@ -303,14 +348,23 @@ def get_nutrition_preferences(db, user_id):
     }
 
 
+def get_goals(db, user_id):
+    cursor = db.cursor()
+    cursor.execute("SELECT goals FROM users WHERE id = ?", (user_id,))
+    user_data = cursor.fetchone()
+    raw_goals = json.loads(user_data[0]) if user_data[0] else {}
+    return {goal: raw_goals.get(goal, "0") for goal in GOALS}
+
+
 # User Model for Flask-Login (Test user: test@test.com, pass:testtest)
 class User(UserMixin):
-    def __init__(self, id, email, password, signup_time, nutrition_preferences):
+    def __init__(self, id, email, password, signup_time, nutrition_preferences, goals):
         self.id = id
         self.email = email
         self.password = password
         self.signup_time = signup_time
         self.nutrition_preferences = nutrition_preferences
+        self.goals = goals
 
 
 @login_manager.user_loader
@@ -357,7 +411,12 @@ def home():
                 password.encode("utf-8"), user_data[2].encode("utf-8")
             ):
                 user = User(
-                    user_data[0], user_data[1], user_data[2], user_data[3], user_data[4]
+                    user_data[0],
+                    user_data[1],
+                    user_data[2],
+                    user_data[3],
+                    user_data[4],
+                    user_data[5],
                 )
                 login_user(user)
                 session["user_id"] = user_data[0]
@@ -419,29 +478,62 @@ def dashboard():
     )
     meals_last_7_days = cursor.fetchall()
 
-    # Lina todo : other interesting data sets? Steps are:
-    # lookup --> cursor.execute ( custom SQL query )
-    # in the below return statement, create a new prop that gets passed to the dashboard.html template
-
-    # days = [entry[0] for entry in meals_last_7_days]
-    # calories = [entry[1] for entry in meals_last_7_days]
-
-    # vega_spec = {
-    #     "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-    #     "width": 500,
-    #     "height": 300,
-    #     "data": {
-    #         "values": [
-    #             {"day": day, "calories": cal}
-    #             for day, cal in zip(days, calories)
-    #         ]
-    #     },
-    #     "mark": "line",
-    #     "encoding": {
-    #         "x": {"field": "day", "type": "temporal", "axis": {"format": "%Y-%m-%d"}},
-    #         "y": {"field": "calories", "type": "quantitative"}
-    #     }
-    # }
+    # Get the nutrients of all meals of the day
+    # nedd to match DATE(TIMESTAMP) to python version of "date"
+    # today = datetime.now().date()
+    cursor.execute(
+        """
+        WITH current_user_diary_meal_entries AS (
+        SELECT * FROM diary_meal_entries 
+        WHERE user_id = ? AND DATE(timestamp) = DATE()
+        )
+        , current_user_table as (
+        SELECT * FROM users
+        WHERE id = ?
+        )
+        , today_nutrients AS (
+        SELECT
+        'Calories' AS nutrients, 
+        SUM(ENERC_KCAL_kcal) AS daily_calories
+        FROM current_user_diary_meal_entries
+        GROUP BY 1 
+        UNION
+        SELECT
+        'Proteins' AS nutrients, 
+        SUM(PROCNT_g)*4/SUM(ENERC_KCAL_kcal)*100 as daily_protein_pct
+        FROM current_user_diary_meal_entries 
+        GROUP BY 1
+        UNION
+        SELECT
+        'Carbs' AS nutrients, 
+        SUM(CHOCDF_g)*4/SUM(ENERC_KCAL_kcal)*100 as daily_carbs_pct
+        FROM current_user_diary_meal_entries 
+        GROUP BY 1
+        UNION 
+        SELECT
+        'Fats' AS nutrients, 
+        SUM(FAT_g)*9/SUM(ENERC_KCAL_kcal)*100 as daily_fat_pct
+        FROM current_user_diary_meal_entries
+        GROUP BY 1
+        ) 
+        , daily_goals as (
+        SELECT KEY AS nutrients, value AS set_goals
+        FROM current_user_table, json_each(goals)
+        ) 
+        SELECT b.nutrients, 
+        ROUND(COALESCE(a.daily_calories,0),2) AS daily_calories, 
+        CAST(b.set_goals AS INTEGER) AS set_goals,
+        ROUND(COALESCE(a.daily_calories,0)/NULLIF(CAST(b.set_goals AS INTEGER),0)*100,2) AS pct_of_goal
+        FROM daily_goals b  
+        LEFT JOIN today_nutrients a ON
+            a.nutrients = b.nutrients 
+    """,
+        (
+            current_user.id,
+            current_user.id,
+        ),
+    )
+    goals = cursor.fetchall()
 
     # Pass the meals to the dashboard template
     return render_template(
@@ -450,6 +542,7 @@ def dashboard():
         meals=meals,
         user_id=current_user.id,
         meals_last_7_days=json.dumps(meals_last_7_days),
+        goals=json.dumps(goals),
     )
 
 
@@ -490,6 +583,40 @@ def preferences():
     print("Loaded preferences:", preferences)
 
     return render_template("preferences.html", preferences=preferences)
+
+
+GOALS = ["Calories", "Carbs", "Proteins", "Fats"]
+
+
+@app.route("/goals", methods=["GET", "POST"])
+@login_required
+def goals():
+    db = get_db()
+
+    if request.method == "POST":
+        goals_form = request.form.to_dict()
+        print("GOALS FORM:", goals_form)
+        goals = {goal: goals_form.get(goal) for goal in GOALS}
+
+        print("Saving goals:", goals)
+
+        # Save the user's goals
+        cursor = db.cursor()
+        cursor.execute(
+            "UPDATE users SET goals = ? WHERE id = ?",
+            (json.dumps(goals), current_user.id),
+        )
+        db.commit()
+
+        # flash("Goals saved!", "success")
+
+    # # Load the user's goals
+    goals = get_goals(db, current_user.id)
+    # goals = {}
+    print("Loaded goals:", goals)
+    db.close()
+
+    return render_template("goals.html", goals=goals)
 
 
 @app.route("/get_user_id")
@@ -549,6 +676,8 @@ def upload():
     model = request.form["model"]
     if model == "yolov8":
         classify_image = classify_image_yolov8
+    elif model == "deit":
+        classify_image = classify_image_deit
     elif model == "gpt-4o":
         classify_image = classify_image_gpt_4o
     elif model == "gpt-4o-no-classes":
