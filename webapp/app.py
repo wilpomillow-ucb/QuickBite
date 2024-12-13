@@ -141,12 +141,12 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     signup_time VARCHAR(255) NOT NULL,
-    nutrition_preferences TEXT
-    goals TEXT DEFAULT '{json.dumps(DEFAULT_GOALS)}'
+    nutrition_preferences JSON,
+    goals JSON
 )
 """
 )
-# DEFAULT '{json.dumps(DEFAULT_PREFERENCES)}'
+
 cursor.execute(
     """
 CREATE TABLE if not exists diary_meal_entries (
@@ -407,6 +407,7 @@ def home():
         if action == "login":
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
             user_data = cursor.fetchone()
+            print("User data:", user_data)
             if user_data and bcrypt.checkpw(
                 password.encode("utf-8"), user_data[2].encode("utf-8")
             ):
@@ -432,8 +433,14 @@ def home():
                 signup_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
                 try:
                     cursor.execute(
-                        "INSERT INTO users (email, password, signup_time) VALUES (%s, %s, %s)",
-                        (email, hashed_password, signup_time),
+                        "INSERT INTO users (email, password, signup_time, nutrition_preferences, goals) VALUES (%s, %s, %s, %s, %s)",
+                        (
+                            email,
+                            hashed_password,
+                            signup_time,
+                            json.dumps(DEFAULT_PREFERENCES),
+                            json.dumps(DEFAULT_GOALS),
+                        ),
                     )
                     db.commit()
                     flash("Account created! You can now log in.", "success")
@@ -455,7 +462,7 @@ def dashboard():
     cursor.execute(
         """SELECT *, ENERC_KCAL_kcal as calories, 
                    PROCNT_g as protein, CHOCDF_g as carbs, FAT_g as fat, timestamp FROM diary_meal_entries 
-                   WHERE user_id = %s ORDER BY datetime(timestamp) DESC""",
+                   WHERE user_id = %s ORDER BY timestamp DESC""",
         (current_user.id,),
     )
     meals = cursor.fetchall()
@@ -464,7 +471,7 @@ def dashboard():
     seven_days_ago = datetime.now() - timedelta(days=7)
     cursor.execute(
         """
-        SELECT strftime('%Y-%m-%d', timestamp) AS day, 
+        SELECT DATE(timestamp) AS day,
                SUM(ENERC_KCAL_kcal) AS calories,
                SUM(PROCNT_g) as protein, 
                SUM(CHOCDF_g) as carbs, 
@@ -481,59 +488,104 @@ def dashboard():
     # Get the nutrients of all meals of the day
     # nedd to match DATE(TIMESTAMP) to python version of "date"
     # today = datetime.now().date()
+    # cursor.execute(
+    #     """
+    #     WITH current_user_diary_meal_entries AS (
+    #     SELECT * FROM diary_meal_entries 
+    #     WHERE user_id = %s AND DATE(timestamp) = DATE(NOW())
+    #     )
+    #     , current_user_table as (
+    #     SELECT * FROM users
+    #     WHERE id = %s
+    #     )
+    #     , today_nutrients AS (
+    #     SELECT
+    #     'Calories' AS nutrients, 
+    #     SUM(ENERC_KCAL_kcal) AS daily_calories
+    #     FROM current_user_diary_meal_entries
+    #     GROUP BY 1 
+    #     UNION
+    #     SELECT
+    #     'Proteins' AS nutrients, 
+    #     SUM(PROCNT_g)*4/SUM(ENERC_KCAL_kcal)*100 as daily_protein_pct
+    #     FROM current_user_diary_meal_entries 
+    #     GROUP BY 1
+    #     UNION
+    #     SELECT
+    #     'Carbs' AS nutrients, 
+    #     SUM(CHOCDF_g)*4/SUM(ENERC_KCAL_kcal)*100 as daily_carbs_pct
+    #     FROM current_user_diary_meal_entries 
+    #     GROUP BY 1
+    #     UNION 
+    #     SELECT
+    #     'Fats' AS nutrients, 
+    #     SUM(FAT_g)*9/SUM(ENERC_KCAL_kcal)*100 as daily_fat_pct
+    #     FROM current_user_diary_meal_entries
+    #     GROUP BY 1
+    #     ) 
+    #     , daily_goals as (
+    #     SELECT nutrients, set_goals
+    #     FROM current_user_table
+    #     CROSS JOIN JSON_TABLE(current_user_table.goals, '$[*]' COLUMNS (
+    #         nutrients VARCHAR(50) PATH '$[*].nutrients',
+    #         set_goals VARCHAR(50) PATH '$[*].set_goals'
+    #     )) as jt
+    #     )
+    #     SELECT b.nutrients, 
+    #     ROUND(COALESCE(a.daily_calories,0),2) AS daily_calories, 
+    #     CAST(b.set_goals AS SIGNED) AS set_goals,
+    #     CASE 
+    #         WHEN CAST(b.set_goals AS SIGNED) = 0 OR a.daily_calories IS NULL THEN 0
+    #         ELSE ROUND((COALESCE(a.daily_calories,0) / CAST(b.set_goals AS SIGNED)) * 100, 2)
+    #     END AS pct_of_goal
+    #     FROM daily_goals b  
+    #     LEFT JOIN today_nutrients a ON
+    #         a.nutrients = b.nutrients 
+    # """,
+    #     (
+    #         current_user.id,
+    #         current_user.id,
+    #     ),
+    # )
+    # goals = cursor.fetchall()
+
+    # Rwerite this logic in python
+    # Fetch the user's goals
+    cursor.execute("SELECT goals FROM users WHERE id = %s", (current_user.id,))
+    set_goals = json.loads(cursor.fetchone()[0])
+
+    print("SET GOALS:", set_goals)
+
+    # Sum up the nutritional data of all food diary entries for today
     cursor.execute(
         """
-        WITH current_user_diary_meal_entries AS (
-        SELECT * FROM diary_meal_entries 
-        WHERE user_id = ? AND DATE(timestamp) = DATE()
-        )
-        , current_user_table as (
-        SELECT * FROM users
-        WHERE id = ?
-        )
-        , today_nutrients AS (
-        SELECT
-        'Calories' AS nutrients, 
-        SUM(ENERC_KCAL_kcal) AS daily_calories
-        FROM current_user_diary_meal_entries
-        GROUP BY 1 
-        UNION
-        SELECT
-        'Proteins' AS nutrients, 
-        SUM(PROCNT_g)*4/SUM(ENERC_KCAL_kcal)*100 as daily_protein_pct
-        FROM current_user_diary_meal_entries 
-        GROUP BY 1
-        UNION
-        SELECT
-        'Carbs' AS nutrients, 
-        SUM(CHOCDF_g)*4/SUM(ENERC_KCAL_kcal)*100 as daily_carbs_pct
-        FROM current_user_diary_meal_entries 
-        GROUP BY 1
-        UNION 
-        SELECT
-        'Fats' AS nutrients, 
-        SUM(FAT_g)*9/SUM(ENERC_KCAL_kcal)*100 as daily_fat_pct
-        FROM current_user_diary_meal_entries
-        GROUP BY 1
-        ) 
-        , daily_goals as (
-        SELECT KEY AS nutrients, value AS set_goals
-        FROM current_user_table, json_each(goals)
-        ) 
-        SELECT b.nutrients, 
-        ROUND(COALESCE(a.daily_calories,0),2) AS daily_calories, 
-        CAST(b.set_goals AS INTEGER) AS set_goals,
-        ROUND(COALESCE(a.daily_calories,0)/NULLIF(CAST(b.set_goals AS INTEGER),0)*100,2) AS pct_of_goal
-        FROM daily_goals b  
-        LEFT JOIN today_nutrients a ON
-            a.nutrients = b.nutrients 
-    """,
-        (
-            current_user.id,
-            current_user.id,
-        ),
+        SELECT SUM(ENERC_KCAL_kcal) AS daily_calories, SUM(PROCNT_g) AS daily_protein, SUM(CHOCDF_g) AS daily_carbs, SUM(FAT_g) AS daily_fat FROM diary_meal_entries WHERE user_id = %s AND DATE(timestamp) = DATE(NOW())
+        """,
+        (current_user.id,),
     )
-    goals = cursor.fetchall()
+    food_diary_today_nutrients = cursor.fetchone()
+
+    food_diary_today_nutrients = [
+        value if value is not None else 0 for value in food_diary_today_nutrients
+    ]
+
+    # Calculate the percentage of the user's goals for today in python
+    goals = {
+        "Calories": food_diary_today_nutrients[0] / set_goals["Calories"] * 100
+        if set_goals["Calories"] != 0
+        else 0,
+        "Proteins": food_diary_today_nutrients[1] / set_goals["Proteins"] * 100
+        if set_goals["Proteins"] != 0
+        else 0,
+        "Carbs": food_diary_today_nutrients[2] / set_goals["Carbs"] * 100
+        if set_goals["Carbs"] != 0
+        else 0,
+        "Fats": food_diary_today_nutrients[3] / set_goals["Fats"] * 100
+        if set_goals["Fats"] != 0
+        else 0,
+    }
+
+    print("GOALS:", goals)
 
     # Pass the meals to the dashboard template
     return render_template(
