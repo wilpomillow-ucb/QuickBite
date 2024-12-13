@@ -247,7 +247,7 @@ if ENABLE_DEIT:
 
 
 def classify_image_deit(image_path):
-    img = Image.open("../data/edamame.png")
+    img = Image.open(image_path)
     img = img.resize((224, 224))
     img = img.convert("RGB")
     img = np.array(img)
